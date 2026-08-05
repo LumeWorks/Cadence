@@ -3,7 +3,7 @@
 
 //! Test cấu hình và lỗi domain.
 
-use cadence::{CauHinh, LoiCauHinh};
+use cadence::{CauHinh, DangUnicode, KieuTelex, LoiCauHinh, QuyTacDatDau};
 
 #[test]
 fn cau_hinh_mac_dinh_hop_le() {
@@ -86,4 +86,43 @@ fn display_loi_cau_hinh_co_ngu_nghia() {
     assert!(chuoi.contains("1"));
     assert!(chuoi.contains("4096"));
     assert!(chuoi.contains("khong hop le"));
+}
+
+#[test]
+fn mac_dinh_dung_kieu_telex_can_bang() {
+    let cau_hinh = CauHinh::mac_dinh();
+    assert_eq!(cau_hinh.kieu_telex(), KieuTelex::CanBang);
+}
+
+#[test]
+fn dat_kieu_telex_day_du() {
+    let mut cau_hinh = CauHinh::mac_dinh();
+    cau_hinh.dat_kieu_telex(KieuTelex::DayDu);
+    assert_eq!(cau_hinh.kieu_telex(), KieuTelex::DayDu);
+}
+
+#[test]
+fn mac_dinh_dung_quy_tac_hien_dai() {
+    let cau_hinh = CauHinh::mac_dinh();
+    assert_eq!(cau_hinh.quy_tac_dat_dau(), QuyTacDatDau::HienDai);
+}
+
+#[test]
+fn dat_quy_tac_truyen_thong() {
+    let mut cau_hinh = CauHinh::mac_dinh();
+    cau_hinh.dat_quy_tac_dat_dau(QuyTacDatDau::TruyenThong);
+    assert_eq!(cau_hinh.quy_tac_dat_dau(), QuyTacDatDau::TruyenThong);
+}
+
+#[test]
+fn mac_dinh_dung_nfc() {
+    let cau_hinh = CauHinh::mac_dinh();
+    assert_eq!(cau_hinh.dang_unicode(), DangUnicode::Nfc);
+}
+
+#[test]
+fn dat_dang_nfd() {
+    let mut cau_hinh = CauHinh::mac_dinh();
+    cau_hinh.dat_dang_unicode(DangUnicode::Nfd);
+    assert_eq!(cau_hinh.dang_unicode(), DangUnicode::Nfd);
 }
