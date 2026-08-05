@@ -8,7 +8,7 @@ use alloc::vec::Vec;
 
 use crate::anh_xa;
 use crate::ban_chup::BanChupSoan;
-use crate::cau_hinh::{CauHinh, DangUnicode, KieuTelex, QuyTacDatDau};
+use crate::cau_hinh::{CauHinh, ChinhSachLuaChon, DangUnicode, KieuTelex, QuyTacDatDau};
 use crate::ket_qua::KetQuaXuLy;
 use crate::thao_tac::ThaoTacNhap;
 
@@ -26,6 +26,8 @@ pub struct PhienGo {
     kieu_telex: KieuTelex,
     /// Quy tắc đặt dấu thanh (hiện đại hay truyền thống).
     quy_tac_dat_dau: QuyTacDatDau,
+    /// Chính sách lựa chọn raw/Telex theo ngữ cảnh (Phase 3).
+    chinh_sach_lua_chon: ChinhSachLuaChon,
     /// Lịch sử thao tác (nguồn sự thật).
     lich_su: Vec<ThaoTacNhap>,
     /// Con trỏ nội bộ: số thao tác raw trước con trỏ (`0..=lich_su.len()`).
@@ -46,6 +48,7 @@ impl PhienGo {
             dang_unicode: cau_hinh.dang_unicode(),
             kieu_telex: cau_hinh.kieu_telex(),
             quy_tac_dat_dau: cau_hinh.quy_tac_dat_dau(),
+            chinh_sach_lua_chon: cau_hinh.chinh_sach_lua_chon(),
             lich_su: Vec::new(),
             con_tro: 0,
             raw_to_byte: alloc::vec![0],
@@ -201,6 +204,7 @@ impl PhienGo {
             self.dang_unicode,
             self.kieu_telex,
             self.quy_tac_dat_dau,
+            self.chinh_sach_lua_chon,
         );
         // Giữ con_tro là raw position thực (không snap) để xoa_lui hoàn tác
         // đúng thao tác raw gần nhất. Chỉ snap khi tính byte cho snapshot.

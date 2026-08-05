@@ -16,6 +16,7 @@
 //! `brooo`) được bảo toàn raw TRƯỚC khi gọi `lua_chon` (xem `phan_doan`).
 
 use crate::am_tiet;
+use crate::cau_hinh::ChinhSachLuaChon;
 use crate::chu_viet::{DauChu, DauThanh};
 use crate::telex::{DonViRender, NoiDungDonVi};
 use alloc::string::String;
@@ -55,6 +56,7 @@ pub(crate) fn lua_chon(
     co_escape: bool,
     co_escape_hinh_chu: bool,
     co_nguyen_ban: bool,
+    chinh_sach: ChinhSachLuaChon,
 ) -> KetQuaLuaChon {
     // Kiểm tra loại transform.
     let co_shape = don_vi.iter().any(|u| match &u.noi_dung {
@@ -110,8 +112,10 @@ pub(crate) fn lua_chon(
 
     // Rule 5: chỉ có tone transform → parse âm tiết đầy đủ.
     // Bỏ qua khi có `them_nguyen_ban` vì các đoạn độc lập.
+    // `UuTienTiengViet` cho phép Telex ngay cả khi âm tiết chưa hoàn chỉnh.
     if co_tone
         && !co_nguyen_ban
+        && chinh_sach != ChinhSachLuaChon::UuTienTiengViet
         && am_tiet::phan_tich_am_tiet(&output) == am_tiet::MucHopLe::KhongHopLe
     {
         return KetQuaLuaChon::NguyenBan;
