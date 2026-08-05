@@ -102,6 +102,37 @@ fn tim_nguyen_am_cuoi(don_vi: &[DonViRender]) -> Option<usize> {
     })
 }
 
+/// Tìm index của nguyên âm chính (nguyên âm mang dấu thanh).
+///
+/// Quy tắc Phase 2: nếu nguyên âm cuối là `i` hoặc `u` không dấu hình chữ
+/// (bán âm cuối) và có nguyên âm khác trước nó, dấu thanh đặt trên nguyên
+/// âm trước đó. Ngược lại, đặt trên nguyên âm cuối.
+fn tim_nguyen_am_chinh(don_vi: &[DonViRender]) -> Option<usize> {
+    let cac_nguyen_am: Vec<usize> = don_vi
+        .iter()
+        .enumerate()
+        .filter(|(_, u)| match &u.noi_dung {
+            NoiDungDonVi::Chu(chu) => chu.chu_goc.la_nguyen_am(),
+            NoiDungDonVi::Chuong(_) => false,
+        })
+        .map(|(i, _)| i)
+        .collect();
+    if cac_nguyen_am.is_empty() {
+        return None;
+    }
+    let cuoi = *cac_nguyen_am.last().unwrap_or(&0);
+    if cac_nguyen_am.len() >= 2 {
+        if let NoiDungDonVi::Chu(chu) = &don_vi[cuoi].noi_dung {
+            if matches!(chu.chu_goc, ChuGoc::I | ChuGoc::U)
+                && matches!(chu.dau_chu, DauChu::Khong)
+            {
+                return Some(cac_nguyen_am[cac_nguyen_am.len() - 2]);
+            }
+        }
+    }
+    Some(cuoi)
+}
+
 /// Tìm vị trí insert trong `don_vi` sao cho đơn vị mới chiếm raw `pos`
 /// nằm đúng thứ tự raw.
 fn vi_tri_chen(don_vi: &[DonViRender], pos: usize) -> usize {
@@ -111,14 +142,26 @@ fn vi_tri_chen(don_vi: &[DonViRender], pos: usize) -> usize {
         .unwrap_or(don_vi.len())
 }
 
+/// Kết quả xử lý đoạn chữ từ Telex.
+pub(crate) struct KetQuaTelex {
+    /// Danh sách đơn vị render.
+    pub(crate) don_vi: Vec<DonViRender>,
+    /// Có escape lặp phím xảy ra.
+    pub(crate) co_escape: bool,
+    /// Escape là escape hình chữ (aa/aw/ee/oo/ow/uw/dd lặp).
+    pub(crate) co_escape_hinh_chu: bool,
+}
+
 /// Xử lý một đoạn chữ (liên tục các thao tác raw) thành `DonViRender`.
 ///
 /// Pipeline:
 /// 1. Biến đổi hình chữ (aa/aw/ee/oo/ow/uw/dd) với escape.
 /// 2. Dấu thanh (s/f/r/x/j/z) áp dụng lên nguyên âm cuối, thay dấu, escape.
 /// 3. Ký tự nguyên bản luôn literal, chặn Telex nối xuyên.
-pub(crate) fn xu_ly_doan_chu(cac_thao_tac: &[ThaoTacNhap]) -> Vec<DonViRender> {
+pub(crate) fn xu_ly_doan_chu(cac_thao_tac: &[ThaoTacNhap]) -> KetQuaTelex {
     let mut don_vi: Vec<DonViRender> = Vec::new();
+    let mut co_escape = false;
+    let mut co_escape_hinh_chu = false;
     let n = cac_thao_tac.len();
     let mut i = 0usize;
     // Track phím dấu thanh gần nhất (lowercase) để escape.
@@ -149,6 +192,8 @@ pub(crate) fn xu_ly_doan_chu(cac_thao_tac: &[ThaoTacNhap]) -> Vec<DonViRender> {
                     && cac_thao_tac[i + 2].ky_tu.to_ascii_lowercase() == modifier_key
                 {
                     // Escape: hiện raw, bỏ biến đổi, consume escape key.
+                    co_escape = true;
+                    co_escape_hinh_chu = true;
                     don_vi.push(DonViRender::chuong(ky_tu, i));
                     don_vi.push(DonViRender::chuong(cac_thao_tac[i + 1].ky_tu, i + 1));
                     tone_key_cuoi = None;
@@ -157,6 +202,21 @@ pub(crate) fn xu_ly_doan_chu(cac_thao_tac: &[ThaoTacNhap]) -> Vec<DonViRender> {
                     continue;
                 }
                 // Áp dụng biến đổi hình chữ.
+                // Trường hợp đặc biệt: `uo` + `w` → `ươ` (w biến đổi cả u→ư
+                // và o→ơ, vì ươ là tam nguyên âm).
+                if (chu_goc, dau_chu) == (ChuGoc::O, DauChu::Moc) {
+                    if let Some(idx) = tim_nguyen_am_cuoi(&don_vi) {
+                        if let NoiDungDonVi::Chu(prev_chu) = &don_vi[idx].noi_dung {
+                            if prev_chu.chu_goc == ChuGoc::U
+                                && matches!(prev_chu.dau_chu, DauChu::Khong)
+                            {
+                                let mut u_moi = *prev_chu;
+                                u_moi.dau_chu = DauChu::Moc;
+                                don_vi[idx].noi_dung = NoiDungDonVi::Chu(u_moi);
+                            }
+                        }
+                    }
+                }
                 let kieu_hoa = KieuHoa::tu_ky_tu(ky_tu);
                 let chu = ChuCaiViet {
                     chu_goc,
@@ -180,8 +240,9 @@ pub(crate) fn xu_ly_doan_chu(cac_thao_tac: &[ThaoTacNhap]) -> Vec<DonViRender> {
             // Escape: lặp đúng phím dấu thanh đang hoạt động.
             if tone_key_cuoi == Some(key_lower) {
                 if let Some(tone_pos) = tone_pos_cuoi {
-                    // Hoàn tác dấu trên nguyên âm cuối.
-                    if let Some(idx) = tim_nguyen_am_cuoi(&don_vi) {
+                    co_escape = true;
+                    // Hoàn tác dấu trên nguyên âm chính.
+                    if let Some(idx) = tim_nguyen_am_chinh(&don_vi) {
                         if let NoiDungDonVi::Chu(ref mut chu) = don_vi[idx].noi_dung {
                             chu.dau_thanh = DauThanh::Khong;
                         }
@@ -206,7 +267,7 @@ pub(crate) fn xu_ly_doan_chu(cac_thao_tac: &[ThaoTacNhap]) -> Vec<DonViRender> {
             }
 
             // Áp dụng / thay / xóa dấu thanh.
-            if let Some(idx) = tim_nguyen_am_cuoi(&don_vi) {
+            if let Some(idx) = tim_nguyen_am_chinh(&don_vi) {
                 // z (xóa dấu): chỉ consume khi có dấu để xóa.
                 let dau_hien_tai = match &don_vi[idx].noi_dung {
                     NoiDungDonVi::Chu(chu) => chu.dau_thanh,
@@ -266,5 +327,9 @@ pub(crate) fn xu_ly_doan_chu(cac_thao_tac: &[ThaoTacNhap]) -> Vec<DonViRender> {
         tone_pos_cuoi = None;
         i += 1;
     }
-    don_vi
+    KetQuaTelex {
+        don_vi,
+        co_escape,
+        co_escape_hinh_chu,
+    }
 }

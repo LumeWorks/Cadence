@@ -17,6 +17,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::cau_hinh::DangUnicode;
 use crate::loai_noi_dung::LoaiNoiDung;
+use crate::lua_chon;
 use crate::render;
 use crate::telex::{DonViRender, NoiDungDonVi};
 use crate::thao_tac::ThaoTacNhap;
@@ -35,18 +36,44 @@ pub(crate) struct KetQuaRender {
 
 /// Dựng lại toàn bộ snapshot từ lịch sử thao tác.
 pub(crate) fn xay_lai(thao_tac: &[ThaoTacNhap], dang: DangUnicode) -> KetQuaRender {
-    let don_vi = crate::telex::xu_ly_doan_chu(thao_tac);
-    let mut noi_dung = String::new();
-    let mut byte_len: Vec<usize> = Vec::with_capacity(don_vi.len());
-    for u in &don_vi {
-        let s = render_don_vi(u, dang);
-        byte_len.push(s.len());
-        noi_dung.push_str(&s);
-    }
-    let n = thao_tac.len();
-    let raw_to_byte = tinh_raw_to_byte(&don_vi, &byte_len, n);
-    let navigable = tinh_navigable(&noi_dung, &raw_to_byte);
+    let ket_qua_telex = crate::telex::xu_ly_doan_chu(thao_tac);
+    let don_vi = ket_qua_telex.don_vi;
+    let co_escape = ket_qua_telex.co_escape;
+    let co_escape_hinh_chu = ket_qua_telex.co_escape_hinh_chu;
     let noi_dung_goc: String = thao_tac.iter().map(|t| t.ky_tu).collect();
+
+    // Lựa chọn raw vs Telex cho toàn đoạn.
+    let lua_chon = lua_chon::lua_chon(&don_vi, &noi_dung_goc, co_escape, co_escape_hinh_chu);
+    let (noi_dung, raw_to_byte): (String, Vec<usize>) = match lua_chon {
+        lua_chon::KetQuaLuaChon::Telex => {
+            let mut s = String::new();
+            let mut byte_len = Vec::with_capacity(don_vi.len());
+            for u in &don_vi {
+                let r = render_don_vi(u, dang);
+                byte_len.push(r.len());
+                s.push_str(&r);
+            }
+            let n = thao_tac.len();
+            (s, tinh_raw_to_byte(&don_vi, &byte_len, n))
+        }
+        lua_chon::KetQuaLuaChon::NguyenBan => {
+            // Render raw từng ký tự (chỉ normalize dạng Unicode). Mỗi raw
+            // position maps trực tiếp: r → byte offset của ký tự r.
+            let mut s = String::new();
+            let mut map = vec![0usize; thao_tac.len() + 1];
+            for (i, t) in thao_tac.iter().enumerate() {
+                map[i] = s.len();
+                let chu = match render::phan_tich_ky_tu(t.ky_tu) {
+                    Some(c) => c,
+                    None => crate::chu_viet::ChuCaiViet::thuong(t.ky_tu),
+                };
+                s.push_str(&render::render_chu(&chu, dang));
+            }
+            map[thao_tac.len()] = s.len();
+            (s, map)
+        }
+    };
+    let navigable = tinh_navigable(&noi_dung, &raw_to_byte);
     let loai_noi_dung = loai_noi_dung_cua(&noi_dung, &noi_dung_goc);
     KetQuaRender {
         noi_dung,
