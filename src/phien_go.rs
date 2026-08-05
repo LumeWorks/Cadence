@@ -149,12 +149,11 @@ impl PhienGo {
 
     /// Khôi phục nguyên bản: hiển thị đúng raw input, không biến đổi Telex.
     ///
-    /// Phase 2 bước hiện tại: Telex chưa hoàn chỉnh nên output vẫn bằng raw.
-    /// TODO(phase-2): khi Telex đầy đủ, method sẽ đánh dấu các thao tác hiện
-    /// tại không còn được biến đổi và render nguyên bản, idempotent.
+    /// Phase 2: Telex engine đã đầy đủ. Method này hiện là no-op vì pipeline
+    /// luôn dựng lại từ raw — `noi_dung_goc()` đã cung cấp raw output.
+    /// TODO(phase-3): thêm toggle để switch giữa Telex output và raw output
+    /// trong cùng phiên, idempotent.
     pub fn khoi_phuc_nguyen_ban(&mut self) -> KetQuaXuLy {
-        // Pipeline hiện tại chưa biến đổi (chỉ hình chữ ở commit này), nên
-        // raw đã bằng output. Giữ idempotent.
         KetQuaXuLy::KhongDoi
     }
 

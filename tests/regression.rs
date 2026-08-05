@@ -111,3 +111,18 @@ fn reg_gioi_han_xoa_roi_them_lai() {
     assert!(matches!(phien.them_ky_tu('d'), KetQuaXuLy::CapNhat));
     assert_eq!(phien.ban_chup().noi_dung(), "ad");
 }
+
+/// Regression: `khoi_phuc_nguyen_ban` hiện là no-op (Phase 2). Pipeline luôn
+/// rebuild từ raw, nên method trả `KhongDoi` và không thay đổi snapshot.
+/// Phase 3 sẽ triển khai toggle thực sự.
+#[test]
+fn reg_khoi_phuc_nguyen_ban_la_no_op_phase2() {
+    let mut phien = tao_phien();
+    for c in "tieengs".chars() {
+        phien.them_ky_tu(c);
+    }
+    let truoc = phien.ban_chup().noi_dung().to_string();
+    let ket_qua = phien.khoi_phuc_nguyen_ban();
+    assert!(matches!(ket_qua, KetQuaXuLy::KhongDoi));
+    assert_eq!(phien.ban_chup().noi_dung(), truoc);
+}
