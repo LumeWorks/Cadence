@@ -1,0 +1,4 @@
+# Cấu hình clippy cho Cadence.
+# Giới hạn độ phức tạp để giữ code dễ bảo trì.
+
+msrv = "1.85"

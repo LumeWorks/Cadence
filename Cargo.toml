@@ -8,6 +8,7 @@ description = "A safe and embeddable Vietnamese typing engine"
 readme = "README.md"
 keywords = ["vietnamese", "input", "ime", "telex"]
 categories = ["text-processing", "internationalization"]
+repository = "https://github.com/LumeWorks/Candence"
 
 [lib]
 name = "cadence"
