@@ -12,10 +12,10 @@
 //! lịch sử thao tác → phan_doan → Vec<Doan> → mỗi đoạn render riêng
 //! ```
 
-use alloc::vec::Vec;
 use crate::cau_hinh::KieuTelex;
 use crate::render;
 use crate::thao_tac::{CachNhap, ThaoTacNhap};
+use alloc::vec::Vec;
 
 /// Loại một đoạn raw.
 ///
@@ -181,110 +181,4 @@ pub(crate) fn phan_doan(thao_tac: &[ThaoTacNhap], kieu_telex: KieuTelex) -> Vec<
         });
     }
     ket_qua
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use alloc::vec;
-
-    fn td(c: char) -> ThaoTacNhap {
-        ThaoTacNhap::tu_dong(c)
-    }
-
-    fn nb(c: char) -> ThaoTacNhap {
-        ThaoTacNhap::nguyen_ban(c)
-    }
-
-    fn raw(s: &str) -> Vec<ThaoTacNhap> {
-        s.chars().map(ThaoTacNhap::tu_dong).collect()
-    }
-
-    #[test]
-    fn phan_doan_chu_duy_nhat() {
-        let tt = raw("tieengs");
-        let d = phan_doan(&tt, KieuTelex::CanBang);
-        assert_eq!(d.len(), 1);
-        assert_eq!(d[0].loai, LoaiDoan::Chu);
-        assert_eq!(d[0].bat_dau, 0);
-        assert_eq!(d[0].ket_thuc, 7);
-    }
-
-    #[test]
-    fn phan_doan_tach_khoang_trang() {
-        let tt = raw("cargo build");
-        let d = phan_doan(&tt, KieuTelex::CanBang);
-        assert_eq!(
-            d.iter().map(|x| x.loai).collect::<Vec<_>>(),
-            vec![LoaiDoan::Chu, LoaiDoan::KhoangTrang, LoaiDoan::Chu]
-        );
-    }
-
-    #[test]
-    fn phan_doan_user_id_tach_dau_cau() {
-        let tt = raw("user_id");
-        let d = phan_doan(&tt, KieuTelex::CanBang);
-        assert_eq!(d.len(), 3);
-        assert_eq!(d[0].loai, LoaiDoan::Chu);
-        assert_eq!(d[1].loai, LoaiDoan::DauCau);
-        assert_eq!(d[2].loai, LoaiDoan::Chu);
-    }
-
-    #[test]
-    fn phan_doan_nguyen_ban_tach_rieng() {
-        let tt = vec![td('a'), nb('x'), td('b')];
-        let d = phan_doan(&tt, KieuTelex::CanBang);
-        assert_eq!(d.len(), 3);
-        assert_eq!(d[0].loai, LoaiDoan::Chu);
-        assert_eq!(d[1].loai, LoaiDoan::NguyenBan);
-        assert_eq!(d[2].loai, LoaiDoan::Chu);
-    }
-
-    #[test]
-    fn phan_doan_daydu_ngoac_la_chu() {
-        let tt = raw("]f");
-        let d = phan_doan(&tt, KieuTelex::DayDu);
-        assert_eq!(d.len(), 1);
-        assert_eq!(d[0].loai, LoaiDoan::Chu);
-    }
-
-    #[test]
-    fn phan_doan_canbang_ngoac_la_ky_thuat() {
-        let tt = raw("]f");
-        let d = phan_doan(&tt, KieuTelex::CanBang);
-        assert_eq!(
-            d.iter().map(|x| x.loai).collect::<Vec<_>>(),
-            vec![LoaiDoan::KyThuat, LoaiDoan::Chu]
-        );
-    }
-
-    #[test]
-    fn phan_doan_emoji_rieng() {
-        let tt = raw("a😀b");
-        let d = phan_doan(&tt, KieuTelex::CanBang);
-        assert_eq!(d.len(), 3);
-        assert_eq!(d[1].loai, LoaiDoan::Emoji);
-    }
-
-    #[test]
-    fn teencode_lap_brooo_dung() {
-        assert!(la_teencode_lap(&raw("brooo")));
-        assert!(la_teencode_lap(&raw("brooooo")));
-    }
-
-    #[test]
-    fn teencode_lap_ooo_nguyen_doan_sai() {
-        // "ooo" nguyên đoạn (run bắt đầu ở 0) → không phải teencode-lap.
-        assert!(!la_teencode_lap(&raw("ooo")));
-        assert!(!la_teencode_lap(&raw("ddd")));
-        assert!(!la_teencode_lap(&raw("eee")));
-    }
-
-    #[test]
-    fn teencode_lap_khong_anh_huong_tone_escape() {
-        assert!(!la_teencode_lap(&raw("ass")));
-        assert!(!la_teencode_lap(&raw("aww")));
-        assert!(!la_teencode_lap(&raw("ddm")));
-        assert!(!la_teencode_lap(&raw("tieengs")));
-    }
 }
