@@ -95,12 +95,18 @@ fn la_phim_dau_thanh(c: char) -> bool {
     matches!(c.to_ascii_lowercase(), 's' | 'f' | 'r' | 'x' | 'j' | 'z')
 }
 
-/// Tìm index của đơn vị nguyên âm cuối cùng trong `don_vi`.
-fn tim_nguyen_am_cuoi(don_vi: &[DonViRender]) -> Option<usize> {
-    don_vi.iter().rposition(|u| match &u.noi_dung {
-        NoiDungDonVi::Chu(chu) => chu.chu_goc.la_nguyen_am(),
-        NoiDungDonVi::Chuong(_) => false,
-    })
+/// Tìm index của đơn vị nguyên âm cuối cùng trong `don_vi` (từ `min_raw` trở đi).
+fn tim_nguyen_am_cuoi(don_vi: &[DonViRender], min_raw: usize) -> Option<usize> {
+    don_vi
+        .iter()
+        .enumerate()
+        .filter(|(_, u)| u.raw_bat_dau >= min_raw)
+        .rev()
+        .find(|(_, u)| match &u.noi_dung {
+            NoiDungDonVi::Chu(chu) => chu.chu_goc.la_nguyen_am(),
+            NoiDungDonVi::Chuong(_) => false,
+        })
+        .map(|(i, _)| i)
 }
 
 /// Tìm index của nguyên âm chính (nguyên âm mang dấu thanh).
@@ -111,10 +117,15 @@ fn tim_nguyen_am_cuoi(don_vi: &[DonViRender]) -> Option<usize> {
 /// 2. On-glide `o`+`a`/`e`: `HienDai` đặt trên `o`, `TruyenThong` đặt trên
 ///    `a`/`e`.
 /// 3. Ngược lại, đặt trên nguyên âm cuối.
-fn tim_nguyen_am_chinh(don_vi: &[DonViRender], quy_tac: QuyTacDatDau) -> Option<usize> {
+fn tim_nguyen_am_chinh(
+    don_vi: &[DonViRender],
+    quy_tac: QuyTacDatDau,
+    min_raw: usize,
+) -> Option<usize> {
     let cac_nguyen_am: Vec<usize> = don_vi
         .iter()
         .enumerate()
+        .filter(|(_, u)| u.raw_bat_dau >= min_raw)
         .filter(|(_, u)| match &u.noi_dung {
             NoiDungDonVi::Chu(chu) => chu.chu_goc.la_nguyen_am(),
             NoiDungDonVi::Chuong(_) => false,
@@ -192,6 +203,8 @@ pub(crate) fn xu_ly_doan_chu(
     let mut tone_key_cuoi: Option<char> = None;
     // Track vị trí raw của phím dấu thanh gần nhất đã consume.
     let mut tone_pos_cuoi: Option<usize> = None;
+    // Track ranh giới đoạn: raw position sau `them_nguyen_ban` gần nhất.
+    let mut segment_start: usize = 0;
 
     while i < n {
         let ky_tu = cac_thao_tac[i].ky_tu;
@@ -202,6 +215,7 @@ pub(crate) fn xu_ly_doan_chu(
             don_vi.push(DonViRender::chuong(ky_tu, i));
             tone_key_cuoi = None;
             tone_pos_cuoi = None;
+            segment_start = i + 1;
             i += 1;
             continue;
         }
@@ -229,7 +243,7 @@ pub(crate) fn xu_ly_doan_chu(
                 // Trường hợp đặc biệt: `uo` + `w` → `ươ` (w biến đổi cả u→ư
                 // và o→ơ, vì ươ là tam nguyên âm).
                 if (chu_goc, dau_chu) == (ChuGoc::O, DauChu::Moc) {
-                    if let Some(idx) = tim_nguyen_am_cuoi(&don_vi) {
+                    if let Some(idx) = tim_nguyen_am_cuoi(&don_vi, segment_start) {
                         if let NoiDungDonVi::Chu(prev_chu) = &don_vi[idx].noi_dung {
                             if prev_chu.chu_goc == ChuGoc::U
                                 && matches!(prev_chu.dau_chu, DauChu::Khong)
@@ -266,7 +280,7 @@ pub(crate) fn xu_ly_doan_chu(
                 if let Some(tone_pos) = tone_pos_cuoi {
                     co_escape = true;
                     // Hoàn tác dấu trên nguyên âm chính.
-                    if let Some(idx) = tim_nguyen_am_chinh(&don_vi, quy_tac) {
+                    if let Some(idx) = tim_nguyen_am_chinh(&don_vi, quy_tac, segment_start) {
                         if let NoiDungDonVi::Chu(ref mut chu) = don_vi[idx].noi_dung {
                             chu.dau_thanh = DauThanh::Khong;
                         }
@@ -291,7 +305,7 @@ pub(crate) fn xu_ly_doan_chu(
             }
 
             // Áp dụng / thay / xóa dấu thanh.
-            if let Some(idx) = tim_nguyen_am_chinh(&don_vi, quy_tac) {
+            if let Some(idx) = tim_nguyen_am_chinh(&don_vi, quy_tac, segment_start) {
                 // z (xóa dấu): chỉ consume khi có dấu để xóa.
                 let dau_hien_tai = match &don_vi[idx].noi_dung {
                     NoiDungDonVi::Chu(chu) => chu.dau_thanh,

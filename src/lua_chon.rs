@@ -48,6 +48,7 @@ pub(crate) fn lua_chon(
     _raw: &str,
     co_escape: bool,
     co_escape_hinh_chu: bool,
+    co_nguyen_ban: bool,
 ) -> KetQuaLuaChon {
     // Kiểm tra loại transform.
     let co_shape = don_vi.iter().any(|u| match &u.noi_dung {
@@ -81,7 +82,11 @@ pub(crate) fn lua_chon(
     }
 
     // Rule 4: chỉ có tone transform → parse âm tiết đầy đủ.
-    if co_tone && am_tiet::phan_tich_am_tiet(&output) == am_tiet::MucHopLe::KhongHopLe {
+    // Bỏ qua khi có `them_nguyen_ban` vì các đoạn độc lập, không parse chung.
+    if co_tone
+        && !co_nguyen_ban
+        && am_tiet::phan_tich_am_tiet(&output) == am_tiet::MucHopLe::KhongHopLe
+    {
         return KetQuaLuaChon::NguyenBan;
     }
 

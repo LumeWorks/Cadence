@@ -46,9 +46,18 @@ pub(crate) fn xay_lai(
     let co_escape = ket_qua_telex.co_escape;
     let co_escape_hinh_chu = ket_qua_telex.co_escape_hinh_chu;
     let noi_dung_goc: String = thao_tac.iter().map(|t| t.ky_tu).collect();
+    let co_nguyen_ban = thao_tac
+        .iter()
+        .any(|t| t.cach_nhap == crate::thao_tac::CachNhap::NguyenBan);
 
     // Lựa chọn raw vs Telex cho toàn đoạn.
-    let lua_chon = lua_chon::lua_chon(&don_vi, &noi_dung_goc, co_escape, co_escape_hinh_chu);
+    let lua_chon = lua_chon::lua_chon(
+        &don_vi,
+        &noi_dung_goc,
+        co_escape,
+        co_escape_hinh_chu,
+        co_nguyen_ban,
+    );
     let (noi_dung, raw_to_byte): (String, Vec<usize>) = match lua_chon {
         lua_chon::KetQuaLuaChon::Telex => {
             let mut s = String::new();
