@@ -8,5 +8,10 @@
 //! đoạn đang soạn và snapshot trung lập nền tảng. Telex chưa được
 //! triển khai trong giai đoạn này.
 
+//! Cadence mặc định dùng `std`, nhưng vẫn biên dịch được với `no_std + alloc`.
+
+#![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
+
+extern crate alloc;
