@@ -71,8 +71,7 @@ fn byte_index_sau_di_trai_la_char_boundary() {
         phien.di_trai();
         let bc = phien.ban_chup();
         assert!(
-            bc.noi_dung()
-                .is_char_boundary(bc.con_tro().chi_so_byte()),
+            bc.noi_dung().is_char_boundary(bc.con_tro().chi_so_byte()),
             "byte {} khong la char boundary",
             bc.con_tro().chi_so_byte()
         );
