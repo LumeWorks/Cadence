@@ -71,7 +71,7 @@ fn aa_giu_nguyen_ban() {
     nhap(&mut phien, "aa");
     assert_eq!(phien.ban_chup().noi_dung_goc(), "aa");
     let ban_chup = phien.ban_chup();
-    assert_eq!(ban_chup.loai_noi_dung(), LoaiNoiDung::BienDoiTelex);
+    assert_eq!(ban_chup.loai_noi_dung(), LoaiNoiDung::AmTietTiengViet);
 }
 
 #[test]
