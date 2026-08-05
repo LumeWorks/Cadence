@@ -26,6 +26,11 @@ serde = { version = "1", default-features = false, optional = true, features = [
 
 [dev-dependencies]
 proptest = "1"
+criterion = "0.5"
+
+[[bench]]
+name = "xuyet"
+harness = false
 
 [lints.rust]
 unsafe_code = "forbid"

@@ -30,7 +30,9 @@ fn dat_gioi_han_toi_da_hop_le() {
 #[test]
 fn dat_gioi_han_bang_khong_bi_tu_choi() {
     let mut cau_hinh = CauHinh::mac_dinh();
-    let loi = cau_hinh.dat_gioi_han_thao_tac(0).unwrap_err();
+    let loi = cau_hinh
+        .dat_gioi_han_thao_tac(0)
+        .expect_err("0 phai bi tu choi");
     match loi {
         LoiCauHinh::GioiHanThaoTacKhongHopLe {
             gioi_han,
@@ -47,7 +49,9 @@ fn dat_gioi_han_bang_khong_bi_tu_choi() {
 #[test]
 fn dat_gioi_han_vuot_toi_da_bi_tu_choi() {
     let mut cau_hinh = CauHinh::mac_dinh();
-    let loi = cau_hinh.dat_gioi_han_thao_tac(4097).unwrap_err();
+    let loi = cau_hinh
+        .dat_gioi_han_thao_tac(4097)
+        .expect_err("4097 phai bi tu choi");
     match loi {
         LoiCauHinh::GioiHanThaoTacKhongHopLe {
             gioi_han,
