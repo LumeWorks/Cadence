@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## [Unreleased] - Phase 4
+## [0.1.0] - 2026-08-06
+
+Phát hành đầu tiên. Lõi gõ tiếng Việt Telex đầy đủ, phân đoạn ngữ cảnh,
+ổn định API, 655 tests across all feature combinations.
+
+### Phase 4 - Ổn định và kiểm tra
 
 Giai đoạn này ổn định và kiểm tra cho phát hành `0.1.0`: audit API, tài liệu
 bất biến, mô hình bảo mật, chính sách MSRV, cargo-deny config, rule matrix
