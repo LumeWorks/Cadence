@@ -53,6 +53,29 @@ pub enum DangUnicode {
     Nfd,
 }
 
+/// Chính sách lựa chọn giữa biến đổi Telex và giữ nguyên bản theo ngữ cảnh.
+///
+/// Phase 3 đưa ra mô hình phân đoạn: mỗi đoạn raw được phân loại ý định rồi
+/// quyết định có áp dụng Telex hay không. Chính sách này điều khiển ngưỡng
+/// quyết định mà không cần cờ boolean rời rạc.
+///
+/// Mặc định là [`ChinhSachLuaChon::TuNhien`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum ChinhSachLuaChon {
+    /// Tự nhiên: dùng bằng chứng cấu trúc để giữ code, URL, email, đường dẫn,
+    /// đồng thời biến đổi tiếng Việt khi có bằng chứng rõ (âm tiết hoàn chỉnh
+    /// hoặc hình chữ rõ). Đây là chế độ chính cho đời sống hiện đại.
+    TuNhien,
+    /// Ưu tiên tiếng Việt: cho phép Telex trong nhiều trường hợp mơ hồ hơn,
+    /// nhưng vẫn không phá cấu trúc kỹ thuật đã chắc chắn (URL, email, code
+    /// fence, đường dẫn tuyệt đối).
+    UuTienTiengViet,
+    /// Ưu tiên nguyên bản: chỉ biến đổi khi bằng chứng tiếng Việt rất rõ (âm
+    /// tiết hoàn chỉnh hoặc hình chữ rõ). Hợp với lập trình viên gõ code nhiều.
+    UuTienNguyenBan,
+}
+
 /// Cấu hình điều khiển hành vi của [`BoGo`](crate::BoGo) và các phiên do nó tạo.
 ///
 /// Field là private; thay đổi thông qua method có kiểm tra hợp lệ.
@@ -66,6 +89,8 @@ pub struct CauHinh {
     quy_tac_dat_dau: QuyTacDatDau,
     /// Dạng Unicode output (NFC hay NFD).
     dang_unicode: DangUnicode,
+    /// Chính sách lựa chọn raw/Telex theo ngữ cảnh (Phase 3).
+    chinh_sach_lua_chon: ChinhSachLuaChon,
 }
 
 /// Lỗi cấu hình. Dùng enum domain thay vì `String` chung chung để caller
@@ -84,7 +109,8 @@ pub enum LoiCauHinh {
 }
 
 impl CauHinh {
-    /// Tạo cấu hình mặc định (128 thao tác, Telex cân bằng, dấu hiện đại, NFC).
+    /// Tạo cấu hình mặc định (128 thao tác, Telex cân bằng, dấu hiện đại, NFC,
+    /// chính sách lựa chọn tự nhiên).
     #[must_use]
     pub fn mac_dinh() -> Self {
         Self {
@@ -92,6 +118,7 @@ impl CauHinh {
             kieu_telex: KieuTelex::CanBang,
             quy_tac_dat_dau: QuyTacDatDau::HienDai,
             dang_unicode: DangUnicode::Nfc,
+            chinh_sach_lua_chon: ChinhSachLuaChon::TuNhien,
         }
     }
 
@@ -148,6 +175,17 @@ impl CauHinh {
     /// Đặt dạng Unicode output.
     pub fn dat_dang_unicode(&mut self, dang_unicode: DangUnicode) {
         self.dang_unicode = dang_unicode;
+    }
+
+    /// Trả chính sách lựa chọn raw/Telex hiện tại.
+    #[must_use]
+    pub fn chinh_sach_lua_chon(self) -> ChinhSachLuaChon {
+        self.chinh_sach_lua_chon
+    }
+
+    /// Đặt chính sách lựa chọn raw/Telex.
+    pub fn dat_chinh_sach_lua_chon(&mut self, chinh_sach: ChinhSachLuaChon) {
+        self.chinh_sach_lua_chon = chinh_sach;
     }
 }
 
