@@ -56,7 +56,8 @@ Re-export tại `lib.rs` cũng ổn định: `BoGo`, `CauHinh`, `ChinhSachLuaCho
 - Không derive serde (tránh bypass validation — xem `docs/README.md`).
 
 ### `PhienGo`
-- Không derive trait công khai; `Send` (tự động), `Sync` không cam kết (xem §compile-time).
+- Không derive trait công khai; `Send + Sync` (tự động, đã kiểm chứng trong
+  `tests/contract.rs`); rustdoc ghi cam kết threading.
 - `ban_chup(&self) -> &BanChupSoan` — Ổn định 0.1. `#[must_use]`.
 - `trace(&self) -> &[TraceStep]` — Thử nghiệm (feature `trace`). `#[must_use]`.
 - `dang_trong(&self) -> bool` — Ổn định 0.1. `#[must_use]`.
@@ -126,7 +127,7 @@ Re-export tại `lib.rs` cũng ổn định: `BoGo`, `CauHinh`, `ChinhSachLuaCho
 - `Telex`, `NguyenBan`. `#[derive(Debug, Clone, Copy, PartialEq, Eq)]`.
 
 ### `BangChungLuaChon` — Thử nghiệm (feature `trace`)
-- 13 variant: `AmTietTiengVietHoanChinh`, `BienDoiHinhChuRoRang`,
+- 12 variant: `AmTietTiengVietHoanChinh`, `BienDoiHinhChuRoRang`,
   `PhimDauHopLe`, `PhanCachIdentifier`, `CauTrucUrl`, `CauTrucEmail`,
   `CauTrucDuongDan`, `CauTrucCommand`, `ChuoiSoKyThuat`, `KyTuLapChat`,
   `Emoticon`, `NguyenBanDoNguoiGoiYeuCau`.
@@ -144,8 +145,9 @@ Không có public constant hay type alias.
 - `Clone` cho mọi struct/enum công khai.
 - serde `Serialize`/`Deserialize` cho `KetQuaXuLy`, `LoaiNoiDung`,
   `KieuTelex`, `QuyTacDatDau`, `DangUnicode`, `ChinhSachLuaChon` (feature `serde`).
-- `Send + Sync` cho `CauHinh`, `BoGo`, `ViTriVanBan`, `BanChupSoan`
-  (tự động); `PhienGo: Send` (xem compile-time contract).
+- `Send + Sync` cho `CauHinh`, `BoGo`, `ViTriVanBan`, `BanChupSoan`,
+  `PhienGo` (tự động); `PhienGo: Send + Sync` đã kiểm chứng trong
+  `tests/contract.rs`.
 
 ## Item không lộ (cố ý `pub(crate)`)
 
