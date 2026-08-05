@@ -149,3 +149,335 @@ fn commit_reset_lien_tuc() {
     p.them_ky_tu('z');
     assert_eq!(p.ban_chup().noi_dung(), "z");
 }
+
+// ---------------------------------------------------------------------------
+// Editing matrix: mỗi thao tác tại mỗi vị trí (rỗng, đầu, giữa, cuối).
+// ---------------------------------------------------------------------------
+
+/// Insert tại mọi vị trí: rỗng, đầu, giữa, cuối — nội dung đúng, cursor đúng.
+#[test]
+fn matrix_them_tai_moi_vi_tri() {
+    // Rỗng → insert 'a' → "a", cursor 1.
+    let mut p = phien();
+    p.them_ky_tu('a');
+    assert_eq!(p.ban_chup().noi_dung(), "a");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 1);
+
+    // Đầu của "bc" → insert 'a' → "abc", cursor 1.
+    let mut p = phien();
+    for c in "bc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.ve_dau();
+    p.them_ky_tu('a');
+    assert_eq!(p.ban_chup().noi_dung(), "abc");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 1);
+
+    // Giữa "ac" → insert 'b' → "abc", cursor 2.
+    let mut p = phien();
+    for c in "ac".chars() {
+        p.them_ky_tu(c);
+    }
+    p.ve_dau();
+    p.di_phai();
+    p.them_ky_tu('b');
+    assert_eq!(p.ban_chup().noi_dung(), "abc");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 2);
+
+    // Cuối "ab" → insert 'c' → "abc", cursor 3.
+    let mut p = phien();
+    for c in "ab".chars() {
+        p.them_ky_tu(c);
+    }
+    p.them_ky_tu('c');
+    assert_eq!(p.ban_chup().noi_dung(), "abc");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 3);
+}
+
+/// Backspace tại mọi vị trí: rỗng (no-op), đầu (no-op), giữa, cuối.
+#[test]
+fn matrix_xoa_lui_tai_moi_vi_tri() {
+    // Rỗng → KhongDoi.
+    let mut p = phien();
+    assert!(matches!(p.xoa_lui(), KetQuaXuLy::KhongDoi));
+    assert!(p.dang_trong());
+
+    // Đầu "abc" → KhongDoi, nội dung giữ.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.ve_dau();
+    assert!(matches!(p.xoa_lui(), KetQuaXuLy::KhongDoi));
+    assert_eq!(p.ban_chup().noi_dung(), "abc");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 0);
+
+    // Giữa "abc" (cursor sau 'b') → xóa 'b', "ac", cursor 1.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.di_trai();
+    p.xoa_lui();
+    assert_eq!(p.ban_chup().noi_dung(), "ac");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 1);
+
+    // Cuối "abc" → xóa 'c', "ab", cursor 2.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.xoa_lui();
+    assert_eq!(p.ban_chup().noi_dung(), "ab");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 2);
+}
+
+/// Delete-forward tại mọi vị trí: rỗng (no-op), đầu, giữa, cuối (no-op).
+#[test]
+fn matrix_xoa_phia_truoc_tai_moi_vi_tri() {
+    // Rỗng → KhongDoi.
+    let mut p = phien();
+    assert!(matches!(p.xoa_phia_truoc(), KetQuaXuLy::KhongDoi));
+
+    // Đầu "abc" → xóa 'a', "bc", cursor 0.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.ve_dau();
+    p.xoa_phia_truoc();
+    assert_eq!(p.ban_chup().noi_dung(), "bc");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 0);
+
+    // Giữa "abc" (cursor sau 'a') → xóa 'b', "ac", cursor 1.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.ve_dau();
+    p.di_phai();
+    p.xoa_phia_truoc();
+    assert_eq!(p.ban_chup().noi_dung(), "ac");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 1);
+
+    // Cuối "abc" → KhongDoi, nội dung giữ.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    assert!(matches!(p.xoa_phia_truoc(), KetQuaXuLy::KhongDoi));
+    assert_eq!(p.ban_chup().noi_dung(), "abc");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 3);
+}
+
+/// Di trái tại mọi vị trí: rỗng (no-op), đầu (no-op), giữa, cuối.
+#[test]
+fn matrix_di_trai_tai_moi_vi_tri() {
+    // Rỗng → KhongDoi.
+    let mut p = phien();
+    assert!(matches!(p.di_trai(), KetQuaXuLy::KhongDoi));
+
+    // Đầu → KhongDoi.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.ve_dau();
+    assert!(matches!(p.di_trai(), KetQuaXuLy::KhongDoi));
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 0);
+
+    // Giữa → CapNhat, cursor giảm 1.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    assert!(matches!(p.di_trai(), KetQuaXuLy::CapNhat));
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 2);
+
+    // Cuối → CapNhat.
+    let mut p = phien();
+    for c in "ab".chars() {
+        p.them_ky_tu(c);
+    }
+    assert!(matches!(p.di_trai(), KetQuaXuLy::CapNhat));
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 1);
+}
+
+/// Di phải tại mọi vị trí: rỗng (no-op), đầu, giữa, cuối (no-op).
+#[test]
+fn matrix_di_phai_tai_moi_vi_tri() {
+    // Rỗng → KhongDoi.
+    let mut p = phien();
+    assert!(matches!(p.di_phai(), KetQuaXuLy::KhongDoi));
+
+    // Đầu → CapNhat.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.ve_dau();
+    assert!(matches!(p.di_phai(), KetQuaXuLy::CapNhat));
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 1);
+
+    // Giữa → CapNhat.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.ve_dau();
+    p.di_phai();
+    assert!(matches!(p.di_phai(), KetQuaXuLy::CapNhat));
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 2);
+
+    // Cuối → KhongDoi.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    assert!(matches!(p.di_phai(), KetQuaXuLy::KhongDoi));
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 3);
+}
+
+/// Ve_dau/ve_cuoi tại mọi vị trí: rỗng (no-op), đầu/cuối (no-op), giữa (CapNhat).
+#[test]
+fn matrix_ve_dau_cuoi_tai_moi_vi_tri() {
+    // Rỗng → KhongDoi.
+    let mut p = phien();
+    assert!(matches!(p.ve_dau(), KetQuaXuLy::KhongDoi));
+    assert!(matches!(p.ve_cuoi(), KetQuaXuLy::KhongDoi));
+
+    // Đầu → ve_dau KhongDoi, ve_cuoi CapNhat.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.ve_dau();
+    assert!(matches!(p.ve_dau(), KetQuaXuLy::KhongDoi));
+    assert!(matches!(p.ve_cuoi(), KetQuaXuLy::CapNhat));
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 3);
+
+    // Giữa → cả hai CapNhat.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    p.ve_dau();
+    p.di_phai();
+    assert!(matches!(p.ve_dau(), KetQuaXuLy::CapNhat));
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 0);
+    assert!(matches!(p.ve_cuoi(), KetQuaXuLy::CapNhat));
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 3);
+
+    // Cuối → ve_cuoi KhongDoi, ve_dau CapNhat.
+    let mut p = phien();
+    for c in "abc".chars() {
+        p.them_ky_tu(c);
+    }
+    assert!(matches!(p.ve_cuoi(), KetQuaXuLy::KhongDoi));
+    assert!(matches!(p.ve_dau(), KetQuaXuLy::CapNhat));
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 0);
+}
+
+// ---------------------------------------------------------------------------
+// Backspace + re-type: tone, shape, shape+tone.
+// ---------------------------------------------------------------------------
+
+/// Backspace sau tone → nhập lại tone key → phục hồi dấu thanh.
+#[test]
+fn backspace_roi_nhap_lai_tone() {
+    let mut p = phien();
+    for c in "as".chars() {
+        p.them_ky_tu(c);
+    }
+    assert_eq!(p.ban_chup().noi_dung(), "á");
+    p.xoa_lui();
+    assert_eq!(p.ban_chup().noi_dung(), "a");
+    p.them_ky_tu('s');
+    assert_eq!(p.ban_chup().noi_dung(), "á");
+}
+
+/// Backspace sau shape → nhập lại modifier → phục hồi hình chữ.
+#[test]
+fn backspace_roi_nhap_lai_shape() {
+    let mut p = phien();
+    for c in "aw".chars() {
+        p.them_ky_tu(c);
+    }
+    assert_eq!(p.ban_chup().noi_dung(), "ă");
+    p.xoa_lui();
+    assert_eq!(p.ban_chup().noi_dung(), "a");
+    p.them_ky_tu('w');
+    assert_eq!(p.ban_chup().noi_dung(), "ă");
+}
+
+/// Backspace sau shape+tone → nhập lại tone → phục hồi đầy đủ.
+#[test]
+fn backspace_roi_nhap_lai_shape_tone() {
+    let mut p = phien();
+    for c in "aws".chars() {
+        p.them_ky_tu(c);
+    }
+    assert_eq!(p.ban_chup().noi_dung(), "ắ");
+    // Xóa tone → "ă".
+    p.xoa_lui();
+    assert_eq!(p.ban_chup().noi_dung(), "ă");
+    // Nhập lại tone → "ắ".
+    p.them_ky_tu('s');
+    assert_eq!(p.ban_chup().noi_dung(), "ắ");
+}
+
+/// Backspace sau shape+tone hai bước → phục hồi shape rồi tone.
+#[test]
+fn backspace_hai_buoc_roi_nhap_lai() {
+    let mut p = phien();
+    for c in "aws".chars() {
+        p.them_ky_tu(c);
+    }
+    assert_eq!(p.ban_chup().noi_dung(), "ắ");
+    // Bước 1: xóa tone → "ă".
+    p.xoa_lui();
+    assert_eq!(p.ban_chup().noi_dung(), "ă");
+    // Bước 2: xóa shape → "a".
+    p.xoa_lui();
+    assert_eq!(p.ban_chup().noi_dung(), "a");
+    // Nhập lại shape + tone.
+    p.them_ky_tu('w');
+    assert_eq!(p.ban_chup().noi_dung(), "ă");
+    p.them_ky_tu('s');
+    assert_eq!(p.ban_chup().noi_dung(), "ắ");
+}
+
+/// Delete-forward trên Telex grapheme: shape+tone, xóa từ đầu.
+///
+/// `aws`→`ắ` (1 grapheme, 3 raw actions). Delete-forward ở đầu xóa raw `a`,
+/// còn `ws` → re-render. `w` đơn lẻ + `s` không vowel → literal "ws".
+#[test]
+fn xoa_phia_truoc_tren_telex_chinh_xac() {
+    let mut p = phien();
+    for c in "aws".chars() {
+        p.them_ky_tu(c);
+    }
+    assert_eq!(p.ban_chup().noi_dung(), "ắ");
+    p.ve_dau();
+    p.xoa_phia_truoc();
+    // Xóa raw `a`, còn `ws` → w literal, s không vowel → literal.
+    assert_eq!(p.ban_chup().noi_dung(), "ws");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 0);
+}
+
+/// Delete-forward trên Telex: xóa giữa hai grapheme.
+#[test]
+fn xoa_phia_truoc_giua_telex() {
+    let mut p = phien();
+    // "ba" → 'b' + 'ă' (aw).
+    p.them_ky_tu('b');
+    for c in "aw".chars() {
+        p.them_ky_tu(c);
+    }
+    assert_eq!(p.ban_chup().noi_dung(), "bă");
+    // Cursor ở đầu, xóa forward 'b' → "ă".
+    p.ve_dau();
+    p.xoa_phia_truoc();
+    assert_eq!(p.ban_chup().noi_dung(), "ă");
+    assert_eq!(p.ban_chup().con_tro().chi_so_grapheme(), 0);
+}

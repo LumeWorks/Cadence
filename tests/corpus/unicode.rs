@@ -108,3 +108,139 @@ fn ky_tu_lap_preservation() {
     }
     assert_eq!(phien.ban_chup().noi_dung_goc(), "aaa");
 }
+
+// ---------------------------------------------------------------------------
+// NFC/NFD equivalence matrix: mọi shape × mọi tone.
+// ---------------------------------------------------------------------------
+
+/// NFC và NFD canonical equivalent cho mọi shape × tone (7 shapes × 5 tones = 35).
+#[test]
+fn nfc_nfd_equivalence_matrix() {
+    let shapes = ["aa", "aw", "ee", "oo", "ow", "uw", "dd"];
+    let tones = ['s', 'f', 'r', 'x', 'j'];
+    for &shape in &shapes {
+        for &tone in &tones {
+            let raw = format!("{shape}{tone}");
+            let nfc = go(&raw, DangUnicode::Nfc);
+            let nfd = go(&raw, DangUnicode::Nfd);
+            // `dd` không nhận tone (phụ âm), nên output = "dd" + tone literal.
+            // Nhưng vẫn phải canonical equivalent.
+            assert_eq!(
+                nfc.nfd().collect::<String>(),
+                nfd,
+                "equiv {raw}: NFC→NFD != NFD"
+            );
+            assert_eq!(
+                nfd.nfc().collect::<String>(),
+                nfc,
+                "equiv {raw}: NFD→NFC != NFC"
+            );
+        }
+    }
+}
+
+/// NFC và NFD có cùng số grapheme cho mọi shape × tone.
+#[test]
+fn nfc_nfd_cung_grapheme_count() {
+    let shapes = ["aa", "aw", "ee", "oo", "ow", "uw"];
+    let tones = ['s', 'f', 'r', 'x', 'j'];
+    for &shape in &shapes {
+        for &tone in &tones {
+            let raw = format!("{shape}{tone}");
+            let nfc = go(&raw, DangUnicode::Nfc);
+            let nfd = go(&raw, DangUnicode::Nfd);
+            let g_nfc = nfc.graphemes(true).count();
+            let g_nfd = nfd.graphemes(true).count();
+            assert_eq!(
+                g_nfc, g_nfd,
+                "grapheme count {raw}: NFC={g_nfc} NFD={g_nfd}"
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// NFD cursor movement into decomposed grapheme.
+// ---------------------------------------------------------------------------
+
+/// NFD: di chuyển con trỏ vào grapheme đã phân rã — không kẹt giữa cluster.
+#[test]
+fn nfd_con_tro_di_vao_grapheme_phan_ra() {
+    let mut c = CauHinh::mac_dinh();
+    c.dat_dang_unicode(DangUnicode::Nfd);
+    let bo_go = BoGo::new(c).expect("cau hinh hop le");
+    let mut phien = bo_go.tao_phien();
+    // `aws` → NFD: 'a' + U+0306 (breve) + U+0301 (acute) = 1 grapheme.
+    for ch in "aws".chars() {
+        phien.them_ky_tu(ch);
+    }
+    let bc = phien.ban_chup();
+    assert_eq!(bc.noi_dung().graphemes(true).count(), 1);
+    // Cursor ở cuối (grapheme 1). Di trái → phải nhảy về grapheme 0, không kẹt.
+    phien.di_trai();
+    let bc = phien.ban_chup();
+    let g = bc.con_tro().chi_so_grapheme();
+    assert!(g == 0 || g == 1, "grapheme {g} (phai 0 hoac 1)");
+    // Byte index luôn là char boundary.
+    assert!(
+        bc.noi_dung().is_char_boundary(bc.con_tro().chi_so_byte()),
+        "byte index khong phai char boundary"
+    );
+}
+
+/// NFD: nhiều grapheme phân rã, di chuyển qua từng cái — cursor ổn định.
+#[test]
+fn nfd_di_chuyen_qua_nhieu_grapheme() {
+    let mut c = CauHinh::mac_dinh();
+    c.dat_dang_unicode(DangUnicode::Nfd);
+    let bo_go = BoGo::new(c).expect("cau hinh hop le");
+    let mut phien = bo_go.tao_phien();
+    // `tieengs` → NFD: t i ế(e+combining) n g = 5 graphemes.
+    for ch in "tieengs".chars() {
+        phien.them_ky_tu(ch);
+    }
+    let bc = phien.ban_chup();
+    let total = bc.noi_dung().graphemes(true).count();
+    assert_eq!(total, 5);
+
+    // Di trái qua từng grapheme, kiểm tra boundary tại mỗi bước.
+    let mut prev_grapheme = 5;
+    for _ in 0..10 {
+        if matches!(phien.di_trai(), cadence::KetQuaXuLy::KhongDoi) {
+            break;
+        }
+        let bc = phien.ban_chup();
+        let g = bc.con_tro().chi_so_grapheme();
+        assert!(
+            g < prev_grapheme,
+            "grapheme khong giam: {g} >= {prev_grapheme}"
+        );
+        assert!(
+            bc.noi_dung().is_char_boundary(bc.con_tro().chi_so_byte()),
+            "byte index khong phai char boundary tai grapheme {g}"
+        );
+        prev_grapheme = g;
+    }
+    assert_eq!(prev_grapheme, 0);
+}
+
+/// NFD: backspace sau grapheme phân rã — hoàn tác một raw action.
+#[test]
+fn nfd_backspace_hoan_tac_tren_grapheme_phan_ra() {
+    let mut c = CauHinh::mac_dinh();
+    c.dat_dang_unicode(DangUnicode::Nfd);
+    let bo_go = BoGo::new(c).expect("cau hinh hop le");
+    let mut phien = bo_go.tao_phien();
+    for ch in "aws".chars() {
+        phien.them_ky_tu(ch);
+    }
+    // NFD: `a` + combining breve + combining acute.
+    let nfd = phien.ban_chup().noi_dung().to_string();
+    assert!(nfd.contains('\u{0306}'), "NFD phai co breve");
+    assert!(nfd.contains('\u{0301}'), "NFD phai co acute");
+    // Backspace → hoàn tác tone, chỉ còn `a` + breve = `ă`.
+    phien.xoa_lui();
+    let nfd = phien.ban_chup().noi_dung().to_string();
+    assert!(nfd.contains('\u{0306}'), "NFD phai con breve");
+    assert!(!nfd.contains('\u{0301}'), "NFD khong con acute");
+}
