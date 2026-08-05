@@ -249,4 +249,39 @@ proptest! {
         let ban_chup = phien.ban_chup();
         prop_assert_eq!(ban_chup.noi_dung(), ban_chup.noi_dung_goc());
     }
+
+    /// Bất biến: NFC output canonical equivalent với NFD output của cùng raw.
+    #[test]
+    fn nfc_nfd_canonical_equivalent(cac_ky_tu in prop::collection::vec(ky_tu_co_nghia(), 0..32)) {
+        use unicode_normalization::UnicodeNormalization;
+        let mut cau_hinh_nfc = CauHinh::mac_dinh();
+        cau_hinh_nfc.dat_gioi_han_thao_tac(4096).expect("ok");
+        let mut cau_hinh_nfd = CauHinh::mac_dinh();
+        cau_hinh_nfd.dat_dang_unicode(cadence::DangUnicode::Nfd);
+        cau_hinh_nfd.dat_gioi_han_thao_tac(4096).expect("ok");
+        let mut phien_nfc = BoGo::new(cau_hinh_nfc).expect("ok").tao_phien();
+        let mut phien_nfd = BoGo::new(cau_hinh_nfd).expect("ok").tao_phien();
+        for c in &cac_ky_tu {
+            phien_nfc.them_ky_tu(*c);
+            phien_nfd.them_ky_tu(*c);
+        }
+        let nfc = phien_nfc.ban_chup().noi_dung().to_string();
+        let nfd = phien_nfd.ban_chup().noi_dung().to_string();
+        prop_assert_eq!(nfc.nfd().collect::<String>(), nfd);
+    }
+
+    /// Bất biến: byte index luôn là char boundary sau di_trai/di_phai.
+    #[test]
+    fn byte_index_char_boundary_sau_di_chuyen(cac_hanh_dong in prop::collection::vec(hanh_dong(), 0..32)) {
+        let mut phien = tao_phien(4096);
+        ap_dung_day(&mut phien, &cac_hanh_dong);
+        for _ in 0..10 {
+            phien.di_trai();
+            let bc = phien.ban_chup();
+            prop_assert!(bc.noi_dung().is_char_boundary(bc.con_tro().chi_so_byte()));
+            phien.di_phai();
+            let bc = phien.ban_chup();
+            prop_assert!(bc.noi_dung().is_char_boundary(bc.con_tro().chi_so_byte()));
+        }
+    }
 }
