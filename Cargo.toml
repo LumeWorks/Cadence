@@ -1,0 +1,33 @@
+[package]
+name = "cadence"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MPL-2.0"
+description = "A safe and embeddable Vietnamese typing engine"
+readme = "README.md"
+keywords = ["vietnamese", "input", "ime", "telex"]
+categories = ["text-processing", "internationalization"]
+
+[lib]
+name = "cadence"
+path = "src/lib.rs"
+
+[features]
+default = ["std"]
+std = []
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+unused_must_use = "deny"
+
+[lints.clippy]
+correctness = "deny"
+suspicious = "deny"
+perf = "warn"
+style = "warn"
+complexity = "warn"
+unwrap_used = "deny"
+wildcard_imports = "deny"
+enum_glob_use = "deny"
