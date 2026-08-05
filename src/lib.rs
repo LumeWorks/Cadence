@@ -11,9 +11,11 @@ extern crate alloc;
 pub mod ban_chup;
 pub mod bo_go;
 pub mod cau_hinh;
+pub(crate) mod chu_viet;
 pub mod ket_qua;
 pub mod loai_noi_dung;
 pub mod phien_go;
+pub(crate) mod render;
 pub(crate) mod thao_tac;
 pub mod vi_tri;
 

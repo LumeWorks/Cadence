@@ -37,17 +37,19 @@ impl BanChupSoan {
         }
     }
 
-    /// Dựng snapshot từ nội dung gốc đã render và vị trí byte con trỏ.
+    /// Dựng snapshot từ nội dung đã render, nội dung gốc, vị trí byte con
+    /// trỏ và loại nội dung.
+    ///
+    /// `noi_dung_goc` là raw input byte-for-byte; `noi_dung` là output đã
+    /// biến đổi (có thể khác raw khi Telex hoạt động).
     #[must_use]
-    pub(crate) fn dung(noi_dung_goc: String, chi_so_byte: usize) -> Self {
-        let loai_noi_dung = if noi_dung_goc.is_empty() {
-            LoaiNoiDung::Trong
-        } else {
-            LoaiNoiDung::NguyenBan
-        };
-        let con_tro = ViTriVanBan::tai_byte(&noi_dung_goc, chi_so_byte);
-        // Phase 1: hiển thị bằng nội dung gốc.
-        let noi_dung = noi_dung_goc.clone();
+    pub(crate) fn dung(
+        noi_dung: String,
+        noi_dung_goc: String,
+        chi_so_byte: usize,
+        loai_noi_dung: LoaiNoiDung,
+    ) -> Self {
+        let con_tro = ViTriVanBan::tai_byte(&noi_dung, chi_so_byte);
         Self {
             noi_dung,
             noi_dung_goc,

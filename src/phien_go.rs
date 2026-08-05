@@ -7,8 +7,10 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::ban_chup::BanChupSoan;
-use crate::cau_hinh::CauHinh;
+use crate::cau_hinh::{CauHinh, DangUnicode};
+use crate::chu_viet::ChuCaiViet;
 use crate::ket_qua::KetQuaXuLy;
+use crate::render;
 use crate::thao_tac::ThaoTacNhap;
 
 /// Phiên soạn thảo của một đoạn composition.
@@ -18,6 +20,8 @@ use crate::thao_tac::ThaoTacNhap;
 pub struct PhienGo {
     /// Bản sao giới hạn thao tác cần thiết cho phiên.
     gioi_han_thao_tac: usize,
+    /// Dạng Unicode output.
+    dang_unicode: DangUnicode,
     /// Lịch sử thao tác (nguồn sự thật).
     lich_su: Vec<ThaoTacNhap>,
     /// Con trỏ nội bộ: số thao tác nằm trước con trỏ (`0..=lich_su.len()`).
@@ -33,6 +37,7 @@ impl PhienGo {
     pub(crate) fn moi(cau_hinh: CauHinh) -> Self {
         Self {
             gioi_han_thao_tac: cau_hinh.gioi_han_thao_tac(),
+            dang_unicode: cau_hinh.dang_unicode(),
             lich_su: Vec::new(),
             con_tro: 0,
             ban_chup_hien_tai: BanChupSoan::rong(),
@@ -179,23 +184,37 @@ impl PhienGo {
 
     /// Render nguyên bản toàn lịch sử vào buffer và dựng lại snapshot.
     ///
-    /// Phase 1 không có Telex nên mọi thao tác (tự động hay nguyên bản)
-    /// đều được render nguyên ký tự.
+    /// Phase 2 bước đầu: mỗi ký tự raw được phân tích thành `ChuCaiViet`
+    /// rồi render lại qua module render. Kết quả hiển thị vẫn bằng raw
+    /// (chưa có biến đổi Telex) nhưng pipeline render đã được kết nối.
     fn xay_lai_ban_chup(&mut self) {
         self.bo_dem.clear();
         for thao_tac in &self.lich_su {
-            self.bo_dem.push(thao_tac.ky_tu);
+            let chu = match render::phan_tich_ky_tu(thao_tac.ky_tu) {
+                Some(c) => c,
+                None => ChuCaiViet::thuong(thao_tac.ky_tu),
+            };
+            self.bo_dem
+                .push_str(&render::render_chu(&chu, self.dang_unicode));
         }
-        let chi_so_byte = self.tinh_vi_tri_con_tro_byte();
-        self.ban_chup_hien_tai = BanChupSoan::dung(self.bo_dem.clone(), chi_so_byte);
-    }
-
-    /// Tính vị trí byte của con trỏ: tổng `len_utf8` của các ký tự nằm
-    /// trước con trỏ trong lịch sử.
-    fn tinh_vi_tri_con_tro_byte(&self) -> usize {
-        self.lich_su[..self.con_tro]
-            .iter()
-            .map(|thao_tac| thao_tac.ky_tu.len_utf8())
-            .sum()
+        // Nội dung gốc: raw byte-for-byte.
+        let noi_dung_goc: String = self.lich_su.iter().map(|t| t.ky_tu).collect();
+        // Vị trí byte con trỏ: render tiền tố raw trước con trỏ.
+        // TODO(phase-2): thay bằng ánh xạ provenance khi Telex gộp thao tác.
+        let mut tien_to = String::new();
+        for thao_tac in &self.lich_su[..self.con_tro] {
+            let chu = match render::phan_tich_ky_tu(thao_tac.ky_tu) {
+                Some(c) => c,
+                None => ChuCaiViet::thuong(thao_tac.ky_tu),
+            };
+            tien_to.push_str(&render::render_chu(&chu, self.dang_unicode));
+        }
+        let loai = if noi_dung_goc.is_empty() {
+            crate::loai_noi_dung::LoaiNoiDung::Trong
+        } else {
+            crate::loai_noi_dung::LoaiNoiDung::NguyenBan
+        };
+        self.ban_chup_hien_tai =
+            BanChupSoan::dung(self.bo_dem.clone(), noi_dung_goc, tien_to.len(), loai);
     }
 }
