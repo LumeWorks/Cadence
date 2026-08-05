@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
-//! Bộ nhận Telex — biến đổi raw input thành đơn vị render có provenance.
+//! Bộ nhận Telex - biến đổi raw input thành đơn vị render có provenance.
 //!
 //! Module này là tầng giữa: nhận các thao tác raw trong một đoạn chữ, áp
 //! dụng rule Telex (hình chữ, dấu thanh, escape) và xuất ra `DonViRender`
@@ -290,7 +290,7 @@ pub(crate) fn xu_ly_doan_chu(
                         if don_vi[idx].raw_ket_thuc == tone_pos + 1 {
                             don_vi[idx].raw_ket_thuc = tone_pos;
                         } else {
-                            // Tone key ở xa — xóa khỏi thao_tac_anh_huong.
+                            // Tone key ở xa - xóa khỏi thao_tac_anh_huong.
                             don_vi[idx].thao_tac_anh_huong.retain(|&p| p != tone_pos);
                         }
                         // Chèn literal cho tone key cũ tại đúng vị trí.
@@ -298,7 +298,7 @@ pub(crate) fn xu_ly_doan_chu(
                         let ky_tu_tone = cac_thao_tac[tone_pos].ky_tu;
                         don_vi.insert(vi_tri, DonViRender::chuong(ky_tu_tone, tone_pos));
                     }
-                    // Escape trigger (position i) consumed — không hiện literal.
+                    // Escape trigger (position i) consumed - không hiện literal.
                     tone_key_cuoi = None;
                     tone_pos_cuoi = None;
                     i += 1;
@@ -314,7 +314,7 @@ pub(crate) fn xu_ly_doan_chu(
                     NoiDungDonVi::Chuong(_) => DauThanh::Khong,
                 };
                 if key_lower == 'z' && dau_hien_tai == DauThanh::Khong {
-                    // Không có dấu để xóa — z là literal.
+                    // Không có dấu để xóa - z là literal.
                     don_vi.push(DonViRender::chuong(ky_tu, i));
                     tone_key_cuoi = None;
                     tone_pos_cuoi = None;
@@ -330,7 +330,7 @@ pub(crate) fn xu_ly_doan_chu(
                 if i == unit_end {
                     don_vi[idx].raw_ket_thuc = i + 1;
                 } else {
-                    // Tone key ở xa (sau other units) — chỉ track provenance.
+                    // Tone key ở xa (sau other units) - chỉ track provenance.
                     don_vi[idx].thao_tac_anh_huong.push(i);
                 }
                 // z (xóa dấu) không track escape.
@@ -341,11 +341,11 @@ pub(crate) fn xu_ly_doan_chu(
                     tone_key_cuoi = Some(key_lower);
                     tone_pos_cuoi = Some(i);
                 }
-                // Tone key consumed — không tạo đơn vị mới.
+                // Tone key consumed - không tạo đơn vị mới.
                 i += 1;
                 continue;
             }
-            // Không có nguyên âm để đặt dấu — literal.
+            // Không có nguyên âm để đặt dấu - literal.
             don_vi.push(DonViRender::chuong(ky_tu, i));
             tone_key_cuoi = None;
             tone_pos_cuoi = None;

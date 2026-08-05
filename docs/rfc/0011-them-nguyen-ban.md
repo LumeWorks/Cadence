@@ -1,6 +1,6 @@
-# RFC 0011 — `them_nguyen_ban` bypass Telex
+# RFC 0011 - `them_nguyen_ban` bypass Telex
 
-Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
+Trạng thái: Chấp thuận - Phase 2 (đã triển khai).
 
 ## Vấn đề
 
@@ -12,7 +12,7 @@ redo text block). Telex không được can thiệp vào nội dung này.
 `them_nguyen_ban(ky_tu)` chèn ký tự vào lịch sử raw với loại thao tác
 `NguyenBan`. Khi rebuild pipeline:
 
-* Mọi ký tự `them_nguyen_ban` được render literal — không áp dụng shape, tone,
+* Mọi ký tự `them_nguyen_ban` được render literal - không áp dụng shape, tone,
   hay escape.
 * `them_nguyen_ban` chặn Telex rules: sau `them_nguyen_ban`, các raw action
   Telex tiếp theo không được biến đổi ký tự trước `them_nguyen_ban`.
@@ -31,11 +31,11 @@ giới đoạn: Telex rules chỉ áp dụng trong đoạn, không xuyên qua `t
 
 ## Phương án bị loại
 
-* **Telex xử lý `them_nguyen_ban` như `them_ky_tu`**: bị loại — Telex sẽ cố
+* **Telex xử lý `them_nguyen_ban` như `them_ky_tu`**: bị loại - Telex sẽ cố
   biến đổi ký tự có dấu, tạo kết quả sai.
-* **Lưu `them_nguyen_ban` ở tầng riêng, không trong raw history**: bị loại —
+* **Lưu `them_nguyen_ban` ở tầng riêng, không trong raw history**: bị loại -
   phá bất biến "raw là source of truth", khó undo.
-* **Marker trong output**: bị loại — phức tạp, dễ bug.
+* **Marker trong output**: bị loại - phức tạp, dễ bug.
 
 ## Bất biến
 

@@ -1,6 +1,6 @@
-# RFC 0004 — Unicode và con trỏ
+# RFC 0004 - Unicode và con trỏ
 
-Trạng thái: Chấp thuận — Phase 1.
+Trạng thái: Chấp thuận - Phase 1.
 
 ## Vấn đề
 
@@ -45,10 +45,10 @@ mặc định extended).
 
 ## Phương án bị loại
 
-* **Chỉ trả `char` index:** bị loại — sai cho emoji ZWJ và combining mark.
+* **Chỉ trả `char` index:** bị loại - sai cho emoji ZWJ và combining mark.
 * **Snap byte về ranh giới grapheme (làm tròn):** bị loại vì làm mất vị trí char
   thật mà host có thể cần; giữ byte tại ranh giới char chính xác hơn.
-* **Tự viết segmenter:** bị loại — dùng `unicode-segmentation` chuẩn, đã no_std.
+* **Tự viết segmenter:** bị loại - dùng `unicode-segmentation` chuẩn, đã no_std.
 
 ## Bất biến
 

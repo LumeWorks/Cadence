@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
-//! Corpus acceptance tests Phase 3 — "Gõ mọi thứ bạn cần".
+//! Corpus acceptance tests Phase 3 - "Gõ mọi thứ bạn cần".
 //!
 //! Test end-to-end qua `PhienGo::them_ky_tu` cho từng DoD category:
 //! identifier, URL/email/path, code, emoticon, teencode, tiếng Việt, trộn.

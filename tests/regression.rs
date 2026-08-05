@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
-//! Regression suite — khóa các case lỗi cụ thể đã phát hiện trong Phase 1.
+//! Regression suite - khóa các case lỗi cụ thể đã phát hiện trong Phase 1.
 //!
 //! Mỗi test tại đây ghi lại một tình huống đã từng sai, với input tối thiểu,
 //! để chặn quay lại. Các bất biến tổng quát nằm ở `property.rs`, test chức
@@ -84,7 +84,7 @@ fn reg_commit_co_noi_dung_khong_ro_state() {
 }
 
 /// Regression: xóa phía trước ở cuối phiên (con trỏ ở cuối) không thay đổi
-/// state — chặn quay lại trường hợp xóa sai index khi con trỏ bằng độ dài.
+/// state - chặn quay lại trường hợp xóa sai index khi con trỏ bằng độ dài.
 #[test]
 fn reg_xoa_phia_truoc_o_cuoi_khong_doi() {
     let mut phien = tao_phien();
@@ -96,7 +96,7 @@ fn reg_xoa_phia_truoc_o_cuoi_khong_doi() {
     assert_eq!(phien.ban_chup().noi_dung(), "abc");
 }
 
-/// Regression: đạt giới hạn rồi xóa rồi thêm lại được — chặn trường hợp
+/// Regression: đạt giới hạn rồi xóa rồi thêm lại được - chặn trường hợp
 /// giới hạn bị "khoá vĩnh viễn" sau khi chạm ngưỡng.
 #[test]
 fn reg_gioi_han_xoa_roi_them_lai() {

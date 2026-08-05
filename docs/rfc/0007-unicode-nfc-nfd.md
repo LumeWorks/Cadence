@@ -1,6 +1,6 @@
-# RFC 0007 — Unicode NFC/NFD output
+# RFC 0007 - Unicode NFC/NFD output
 
-Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
+Trạng thái: Chấp thuận - Phase 2 (đã triển khai).
 
 ## Vấn đề
 
@@ -33,10 +33,10 @@ Module `render.rs` chứa:
 
 ## Phương án bị loại
 
-* **Chỉ NFC**: bị loại — một số môi trường cần NFD.
-* **Tự normalize bằng crate cho mọi output**: bị loại — bảng tĩnh tiếng Việt
+* **Chỉ NFC**: bị loại - một số môi trường cần NFD.
+* **Tự normalize bằng crate cho mọi output**: bị loại - bảng tĩnh tiếng Việt
   nhanh hơn và kiểm soát được; crate chỉ dùng phụ trợ.
-* **Chỉ NFD**: bị loại — hầu hết font/ứng dụng kỳ vọng NFC.
+* **Chỉ NFD**: bị loại - hầu hết font/ứng dụng kỳ vọng NFC.
 
 ## Bất biến
 

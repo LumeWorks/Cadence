@@ -1,6 +1,6 @@
-# RFC 0001 — Kiến trúc lõi
+# RFC 0001 - Kiến trúc lõi
 
-Trạng thái: Chấp thuận — Phase 1.
+Trạng thái: Chấp thuận - Phase 1.
 
 ## Vấn đề
 
@@ -32,7 +32,7 @@ Lịch sử thao tác là nguồn sự thật duy nhất; snapshot luôn dựng 
 
 * **Workspace nhiều crate:** bị loại vì Phase 1 chưa cần và tăng độ phức tạp nhúng.
 * **Đồng bộ trực tiếp `String`:** bị loại vì dễ sinh trạng thái không nhất quán.
-* **Chứa FFI/IPC trong repo này:** bị loại rõ ràng — đó là vai trò của LCand/WCand.
+* **Chứa FFI/IPC trong repo này:** bị loại rõ ràng - đó là vai trò của LCand/WCand.
 
 ## Bất biến
 

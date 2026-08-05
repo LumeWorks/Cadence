@@ -1,6 +1,6 @@
 # Cadence
 
-Cadence — Gõ mọi thứ bạn cần.
+Cadence - Gõ mọi thứ bạn cần.
 
 Cadence là lõi gõ tiếng Việt thế hệ mới viết bằng Rust, kiến trúc hiện đại và an toàn, có thể nhúng vào nhiều môi trường (Linux, Windows, mobile, trình soạn thảo, công cụ terminal, dự án Rust khác, binding FFI).
 
@@ -47,7 +47,7 @@ Cadence chỉ là lõi xử lý nhập liệu thuần Rust.
 * Async runtime, thread nền, network.
 * Logic nhận diện ứng dụng.
 
-Đó là vai trò của LCand (Linux) và WCand (Windows) — ba repository độc lập.
+Đó là vai trò của LCand (Linux) và WCand (Windows) - ba repository độc lập.
 
 ## Sử dụng
 
@@ -82,9 +82,9 @@ if let KetQuaXuLy::ChapNhan { noi_dung } = phien.chap_nhan() {
 | Feature | Mặc định | Mô tả |
 |---|---|---|
 | `std` | có | Dùng thư viện chuẩn. |
-| `no_std + alloc` | — | Biên dịch cho môi trường không có `std`. |
-| `serde` | — | Derive serde cho một số public data type. |
-| `trace` | — | Trace quyết định raw/Telex có cấu trúc qua `PhienGo::trace()`. |
+| `no_std + alloc` | - | Biên dịch cho môi trường không có `std`. |
+| `serde` | - | Derive serde cho một số public data type. |
+| `trace` | - | Trace quyết định raw/Telex có cấu trúc qua `PhienGo::trace()`. |
 
 ## MSRV
 

@@ -68,7 +68,7 @@ fn nfc_vs_nfd_khac_byte_nhung_tuong_duong() {
     assert_eq!(nfc.nfd().collect::<String>(), nfd);
 }
 
-/// NFD: `nguowif` → `ngu\u{031b}\u{0301}ơi` — ư có horn + huyền.
+/// NFD: `nguowif` → `ngu\u{031b}\u{0301}ơi` - ư có horn + huyền.
 #[test]
 fn nfd_nguowif_phan_ra() {
     let nfd = go_nfd("nguowif");

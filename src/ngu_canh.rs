@@ -171,7 +171,7 @@ fn nhan_duong_dan(raws: &[String], cac_doan: &[Doan], i: usize) -> Option<usize>
     {
         return Some(ket_thuc_duong_dan(cac_doan, i, n));
     }
-    // Windows drive `X:\` — Chu(1) + KyThuat(":\" )
+    // Windows drive `X:\` - Chu(1) + KyThuat(":\" )
     if cac_doan[i].loai == LoaiDoan::Chu
         && raws[i].chars().count() == 1
         && i + 1 < n
@@ -266,7 +266,7 @@ fn nhan_emoticon(raws: &[String], cac_doan: &[Doan], i: usize) -> Option<usize> 
         }
         return Some(j - i);
     }
-    // Chuỗi `?`/`!`/`.` lặp (≥3 ký tự) — emoticon cảm xúc.
+    // Chuỗi `?`/`!`/`.` lặp (≥3 ký tự) - emoticon cảm xúc.
     if matches!(loai, LoaiDoan::DauCau)
         && raw.len() >= 3
         && raw.chars().all(|c| matches!(c, '?' | '!' | '.'))
@@ -338,7 +338,7 @@ pub(crate) fn nhan_dien(cac_doan: &[Doan], thao_tac: &[ThaoTacNhap]) -> Vec<KetQ
                 ket_qua[i].bang_chung = BangChungLuaChon::CauTrucCommand;
                 continue;
             }
-            // `::` sau (vd `foo::bar` — `foo` trước `::` cũng raw).
+            // `::` sau (vd `foo::bar` - `foo` trước `::` cũng raw).
             if raws[s] == "::" {
                 ket_qua[i].bat_buoc_raw = true;
                 ket_qua[i].bang_chung = BangChungLuaChon::CauTrucDuongDan;

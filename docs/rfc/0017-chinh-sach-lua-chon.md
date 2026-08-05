@@ -1,6 +1,6 @@
-# RFC 0017 — Chính sách lựa chọn raw/Telex
+# RFC 0017 - Chính sách lựa chọn raw/Telex
 
-Trạng thái: Chấp thuận — Phase 3 (đã triển khai phần enum; wiring đang dở).
+Trạng thái: Chấp thuận - Phase 3 (đã triển khai phần enum; wiring đang dở).
 
 ## Vấn đề
 
@@ -14,9 +14,9 @@ boolean.
 `ChinhSachLuaChon` trong `CauHinh` (getter/setter, mặc định `TuNhien`):
 
 ```text
-TuNhien           — dùng bằng chứng cấu trúc. Chế độ chính.
-UuTienTiengViet   — cho phép Telex trong trường hợp mơ hồ hơn.
-UuTienNguyenBan   — chỉ biến đổi khi bằng chứng rất rõ.
+TuNhien           - dùng bằng chứng cấu trúc. Chế độ chính.
+UuTienTiengViet   - cho phép Telex trong trường hợp mơ hồ hơn.
+UuTienNguyenBan   - chỉ biến đổi khi bằng chứng rất rõ.
 ```
 
 ### Thứ tự ưu tiên theo chính sách
@@ -46,7 +46,7 @@ fence, đường dẫn tuyệt đối, `::`, `=`). Khác biệt nằm ở đoạ
 
 ## Phương án bị loại
 
-* **Mười boolean (`la_code`, `la_url`, ...)**: bị loại — phình API, trạng thái
+* **Mười boolean (`la_code`, `la_url`, ...)**: bị loại - phình API, trạng thái
   không loại trừ nhau, khó audit.
-* **Điểm số ngưỡng `f64`**: bị loại — không deterministic trực quan.
-* **Global mutable mode**: bị loại — vi phạm "mỗi PhienGo độc lập".
+* **Điểm số ngưỡng `f64`**: bị loại - không deterministic trực quan.
+* **Global mutable mode**: bị loại - vi phạm "mỗi PhienGo độc lập".

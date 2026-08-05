@@ -1,6 +1,6 @@
-# RFC 0012 — Mô hình chữ viết (domain model)
+# RFC 0012 - Mô hình chữ viết (domain model)
 
-Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
+Trạng thái: Chấp thuận - Phase 2 (đã triển khai).
 
 ## Vấn đề
 
@@ -12,7 +12,7 @@ phân biệt nguyên âm/phụ âm.
 
 Module `chu_viet.rs` định nghĩa:
 
-### `ChuGoc` — chữ gốc (base letter)
+### `ChuGoc` - chữ gốc (base letter)
 
 ```rust
 enum ChuGoc {
@@ -23,7 +23,7 @@ enum ChuGoc {
 Mỗi variant đại diện một chữ gốc tiếng Việt. `Aa` = â, `Ao` = ă, `Ee` = ê,
 `Oo` = ô, `OoHorn` = ơ, `UoHorn` = ư.
 
-### `DauChu` — dấu chữ (shape modifier)
+### `DauChu` - dấu chữ (shape modifier)
 
 ```rust
 enum DauChu { Khong, Breve, Circumflex, Horn, Stroke }
@@ -31,7 +31,7 @@ enum DauChu { Khong, Breve, Circumflex, Horn, Stroke }
 
 `Khong` = không dấu. Dấu chữ thay đổi hình nguyên âm: `A` + `Breve` = `ă`.
 
-### `DauThanh` — dấu thanh (tone mark)
+### `DauThanh` - dấu thanh (tone mark)
 
 ```rust
 enum DauThanh { Khong, Sac, Huyen, Hoi, Nga, Nang }
@@ -39,7 +39,7 @@ enum DauThanh { Khong, Sac, Huyen, Hoi, Nga, Nang }
 
 `Khong` = không dấu thanh (z key xóa dấu).
 
-### `KieuHoa` — kiểu hoa/thường
+### `KieuHoa` - kiểu hoa/thường
 
 ```rust
 enum KieuHoa { Thuong, Hoa }
@@ -47,7 +47,7 @@ enum KieuHoa { Thuong, Hoa }
 
 Xác định chữ hoa hay thường. Hoa/thường không ảnh hưởng Telex rules.
 
-### `ChuCaiViet` — chữ cái hoàn chỉnh
+### `ChuCaiViet` - chữ cái hoàn chỉnh
 
 ```rust
 struct ChuCaiViet {
@@ -72,9 +72,9 @@ struct ChuCaiViet {
 
 ## Phương án bị loại
 
-* **String representation**: bị loại — khó pattern match, dễ bug.
-* **Gộp `DauChu` và `DauThanh`**: bị loại — ngữ nghĩa khác, xử lý khác.
-* **Enum nguyên âm với tất cả combo**: bị loại — bùng nổ tổ hợp, khó duy trì.
+* **String representation**: bị loại - khó pattern match, dễ bug.
+* **Gộp `DauChu` và `DauThanh`**: bị loại - ngữ nghĩa khác, xử lý khác.
+* **Enum nguyên âm với tất cả combo**: bị loại - bùng nổ tổ hợp, khó duy trì.
 
 ## Bất biến
 

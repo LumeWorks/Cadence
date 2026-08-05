@@ -206,7 +206,7 @@ fn telex_nguoi(c: &mut Criterion) {
     });
 }
 
-/// Phase 3: gõ code trộn tiếng Việt — "cargo build lỗi rồi =))".
+/// Phase 3: gõ code trộn tiếng Việt - "cargo build lỗi rồi =))".
 /// Đo phân đoạn + nhận diện ngữ cảnh + render per-segment.
 fn phase3_code_tron(c: &mut Criterion) {
     c.bench_function("phase3_code_tron", |b| {
@@ -223,7 +223,7 @@ fn phase3_code_tron(c: &mut Criterion) {
     });
 }
 
-/// Phase 3: gõ URL dài — "https://example.com/path?query=1".
+/// Phase 3: gõ URL dài - "https://example.com/path?query=1".
 /// Đo nhận diện URL + toàn bộ raw path.
 fn phase3_url(c: &mut Criterion) {
     c.bench_function("phase3_url", |b| {
@@ -240,7 +240,7 @@ fn phase3_url(c: &mut Criterion) {
     });
 }
 
-/// Phase 3: gõ namespace Rust — "foo::bar::baz".
+/// Phase 3: gõ namespace Rust - "foo::bar::baz".
 /// Đo nhận diện `::` adjacency trên nhiều đoạn.
 fn phase3_namespace(c: &mut Criterion) {
     c.bench_function("phase3_namespace", |b| {
@@ -257,7 +257,7 @@ fn phase3_namespace(c: &mut Criterion) {
     });
 }
 
-/// Phase 3: gõ teencode lặp — "brooooooo".
+/// Phase 3: gõ teencode lặp - "brooooooo".
 /// Đo phát hiện teencode-lap trước Telex.
 fn phase3_teencode_lap(c: &mut Criterion) {
     c.bench_function("phase3_teencode_lap", |b| {

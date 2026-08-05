@@ -1,6 +1,6 @@
-# RFC 0015 — Nhận diện ngữ cảnh kỹ thuật và bằng chứng lựa chọn
+# RFC 0015 - Nhận diện ngữ cảnh kỹ thuật và bằng chứng lựa chọn
 
-Trạng thái: Chấp thuận — Phase 3 (đã triển khai).
+Trạng thái: Chấp thuận - Phase 3 (đã triển khai).
 
 ## Vấn đề
 
@@ -13,7 +13,7 @@ Việt hợp lệ.
 ## Quyết định
 
 Module `ngu_canh.rs` nhận diện cấu trúc xuyên đoạn và trả `Vec<KetQuaNhanDien>`
-— mỗi đoạn có `bat_buoc_raw: bool` và `bang_chung: BangChungLuaChon`.
+- mỗi đoạn có `bat_buoc_raw: bool` và `bang_chung: BangChungLuaChon`.
 
 ### `BangChungLuaChon`
 
@@ -29,7 +29,7 @@ KyTuLapChat                Emoticon               NguyenBanDoNguoiGoiYeuCau
 
 ### Hai pass
 
-**Pass 1 — span structure** (tiêu thụ nhiều đoạn liên tiếp):
+**Pass 1 - span structure** (tiêu thụ nhiều đoạn liên tiếp):
 
 | Recognizer       | Tín hiệu                                        | Bằng chứng          |
 |------------------|-------------------------------------------------|---------------------|
@@ -41,7 +41,7 @@ KyTuLapChat                Emoticon               NguyenBanDoNguoiGoiYeuCau
 
 URL dùng tín hiệu mạnh `://` để tránh false-positive trên `hoaf.com`.
 
-**Pass 2 — per-segment adjacency** (cho đoạn Chu còn tự do):
+**Pass 2 - per-segment adjacency** (cho đoạn Chu còn tự do):
 
 | Tín hiệu                    | Ví dụ            | Bằng chứng          |
 |-----------------------------|------------------|---------------------|
@@ -72,10 +72,10 @@ Ngăn `ae` (CASE) hay `oe` thành âm tiết giả.
 
 ## Phương án bị loại
 
-* **Regex**: bị loại — vi phạm chính sách hot path, không `no_std` dễ dàng.
-* **Từ điển keyword**: bị loại — phình binary, vi phạm "không dùng từ điển".
-* **Điểm số f32/f64**: bị loại — không deterministic trực quan, khó audit.
-* **Nhận diện sau Telex (cuối pipeline)**: bị loại — `bar` sau `::` đã thành
+* **Regex**: bị loại - vi phạm chính sách hot path, không `no_std` dễ dàng.
+* **Từ điển keyword**: bị loại - phình binary, vi phạm "không dùng từ điển".
+* **Điểm số f32/f64**: bị loại - không deterministic trực quan, khó audit.
+* **Nhận diện sau Telex (cuối pipeline)**: bị loại - `bar` sau `::` đã thành
   `bả` trước khi kiểm tra; phải nhận **trước** khi chạy Telex.
 
 ## Tác động hiệu năng

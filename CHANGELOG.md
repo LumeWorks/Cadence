@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [Unreleased] — Phase 3
+## [Unreleased] - Phase 3
 
 Giai đoạn này triển khai triết lý "Gõ mọi thứ bạn cần": phân đoạn lịch sử,
 nhận diện ngữ cảnh kỹ thuật, lựa chọn raw/Telex theo đoạn, chính sách lựa

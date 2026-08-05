@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
-//! Test chính sách lựa chọn `ChinhSachLuaChon` — sự khác biệt giữa
+//! Test chính sách lựa chọn `ChinhSachLuaChon` - sự khác biệt giữa
 //! `TuNhien`, `UuTienTiengViet`, và `UuTienNguyenBan`.
 
 use cadence::{BoGo, CauHinh, ChinhSachLuaChon};
@@ -33,7 +33,7 @@ fn uu_tien_tieng_viet_tone_telex() {
     assert_eq!(go("cargo", UuTienTiengViet), "cảgo");
 }
 
-/// `UuTienNguyenBan`: giống `TuNhien` — tone + không hợp lệ → raw.
+/// `UuTienNguyenBan`: giống `TuNhien` - tone + không hợp lệ → raw.
 #[test]
 fn uu_tien_nguyen_ban_tone_raw() {
     assert_eq!(go("async", UuTienNguyenBan), "async");

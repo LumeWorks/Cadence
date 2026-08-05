@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
-//! Mô hình thao tác nhập nội bộ — nguồn sự thật của phiên.
+//! Mô hình thao tác nhập nội bộ - nguồn sự thật của phiên.
 
 /// Cách nhập của một ký tự.
 ///

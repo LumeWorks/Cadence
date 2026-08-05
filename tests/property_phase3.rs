@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
-//! Property tests Phase 3 — bất biến mới sau phân đoạn và nhận diện.
+//! Property tests Phase 3 - bất biến mới sau phân đoạn và nhận diện.
 //!
 //! 1. `noi_dung_goc` nguyên vẹn byte-for-byte.
 //! 2. Round-trip: `them_nguyen_ban` cho mỗi char → `noi_dung` == raw.
@@ -149,7 +149,7 @@ proptest! {
         prop_assert_eq!(&go_nguyen_ban(&raw), &raw);
     }
 
-    /// Bất biến: deterministic — cùng input → cùng output.
+    /// Bất biến: deterministic - cùng input → cùng output.
     #[test]
     fn deterministic(raw in chu_co_nghia()) {
         let a = go(&raw);

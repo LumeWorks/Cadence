@@ -1,6 +1,6 @@
-# RFC 0010 — Ánh xạ con trỏ raw ↔ byte, grapheme
+# RFC 0010 - Ánh xạ con trỏ raw ↔ byte, grapheme
 
-Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
+Trạng thái: Chấp thuận - Phase 2 (đã triển khai).
 
 ## Vấn đề
 
@@ -19,7 +19,7 @@ Navigation (`di_trai`, `di_phai`) di chuyển theo ranh giới đơn vị render
 
 ### Ánh xạ raw → byte
 
-Module `anh_xa.rs` xây dựng `raw_to_byte: Vec<usize>` — mỗi raw position maps
+Module `anh_xa.rs` xây dựng `raw_to_byte: Vec<usize>` - mỗi raw position maps
 to byte offset trong output. Mapping này được tính lại mỗi khi rebuild
 pipeline (`xay_lai`).
 
@@ -48,10 +48,10 @@ chỉ cần `pop()` thao tác cuối cùng.
 
 ## Phương án bị loại
 
-* **Con trỏ theo byte**: bị loại — byte offset thay đổi khi rebuild, khó duy
+* **Con trỏ theo byte**: bị loại - byte offset thay đổi khi rebuild, khó duy
   trì.
-* **Con trỏ theo grapheme**: bị loại — grapheme count thay đổi khi rebuild.
-* **Con trỏ snap permanent**: bị loại — navigation không tuyến tính khi con trỏ
+* **Con trỏ theo grapheme**: bị loại - grapheme count thay đổi khi rebuild.
+* **Con trỏ snap permanent**: bị loại - navigation không tuyến tính khi con trỏ
   luôn snap.
 
 ## Bất biến

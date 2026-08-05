@@ -1,6 +1,6 @@
-# RFC 0009 — Lựa chọn raw vs Telex
+# RFC 0009 - Lựa chọn raw vs Telex
 
-Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
+Trạng thái: Chấp thuận - Phase 2 (đã triển khai).
 
 ## Vấn đề
 
@@ -49,10 +49,10 @@ Bypass hoàn toàn Telex; raw chars là literal và chặn mọi quy tắc Telex
 
 ## Phương án bị loại
 
-* **Luôn giữ Telex**: bị loại — output sai chính tả (`ás`, `ớl`).
-* **Luôn fallback raw khi tone only**: bị loại — `ás` hợp lệ nếu gõ `asf` trong
+* **Luôn giữ Telex**: bị loại - output sai chính tả (`ás`, `ớl`).
+* **Luôn fallback raw khi tone only**: bị loại - `ás` hợp lệ nếu gõ `asf` trong
   từ mượn; và `tiếng` có tone only cần giữ.
-* **Từ điển để kiểm tra**: bị loại — policy không dùng từ điển.
+* **Từ điển để kiểm tra**: bị loại - policy không dùng từ điển.
 
 ## Bất biến
 

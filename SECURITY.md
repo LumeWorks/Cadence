@@ -27,11 +27,11 @@ phiên và bị xóa khi `dat_lai`/`chap_nhan`.
 ## Báo lỗi bảo mật
 
 * Mở issue riêng và mô tả tác động. **Không dán nội dung gõ thật của người dùng
-  vào issue công khai** — dùng chuỗi mẫu (ASCII, ký tự Unicode công khai).
+  vào issue công khai** - dùng chuỗi mẫu (ASCII, ký tự Unicode công khai).
 * Nếu báo lỗ hổng bộ nhớ, ghi rõ phiên bản Rust, feature flags và chuỗi tái hiện.
 
 ## Rò rỉ state
 
 Mỗi `PhienGo` độc lập; `chap_nhan` và `dat_lai` xóa toàn bộ state. Nếu phát hiện
-state cũ rò sang token mới, đó là bug nghiêm trọng — vui lòng báo kèm regression
+state cũ rò sang token mới, đó là bug nghiêm trọng - vui lòng báo kèm regression
 test.

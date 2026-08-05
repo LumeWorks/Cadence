@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
-//! Test phân đoạn qua public API — chia lịch sử thành đoạn cùng loại,
+//! Test phân đoạn qua public API - chia lịch sử thành đoạn cùng loại,
 //! Telex chạy độc lập từng đoạn, không xuyên ranh giới.
 
 use cadence::{BoGo, CauHinh};
@@ -21,7 +21,7 @@ fn chu_duy_nhat_telex() {
     assert_eq!(go("tieengs"), "tiếng");
 }
 
-/// Khoảng trắng tách đoạn — tone không xuyên qua.
+/// Khoảng trắng tách đoạn - tone không xuyên qua.
 #[test]
 fn khoang_trang_tach_doan() {
     // "cargo build" → cả hai đoạn raw (identifier), không "cảgo bủild".
@@ -35,7 +35,7 @@ fn dau_cau_tach_doan() {
     assert_eq!(go("user_id"), "user_id");
 }
 
-/// `them_nguyen_ban` tạo ranh giới đoạn — Telex không vượt qua.
+/// `them_nguyen_ban` tạo ranh giới đoạn - Telex không vượt qua.
 #[test]
 fn nguyen_ban_tach_rieng() {
     let bo_go = BoGo::new(CauHinh::mac_dinh()).expect("cau hinh hop le");
@@ -67,7 +67,7 @@ fn canbang_ngoac_la_ky_thuat() {
     assert_eq!(go("]f"), "]f");
 }
 
-/// Emoji tách riêng — không qua Telex.
+/// Emoji tách riêng - không qua Telex.
 #[test]
 fn emoji_rieng() {
     assert_eq!(go("a😀b"), "a😀b");

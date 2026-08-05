@@ -3,7 +3,7 @@
 
 //! Trace có cấu trúc cho quyết định lựa chọn raw/Telex.
 //!
-//! Chỉ tồn tại khi feature `trace` bật. Không overhead khi tắt — toàn bộ
+//! Chỉ tồn tại khi feature `trace` bật. Không overhead khi tắt - toàn bộ
 //! module bị `cfg` ẩn.
 
 use alloc::string::String;

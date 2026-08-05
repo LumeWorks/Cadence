@@ -1,6 +1,6 @@
-# RFC 0005 — Giới hạn phiên
+# RFC 0005 - Giới hạn phiên
 
-Trạng thái: Chấp thuận — Phase 1.
+Trạng thái: Chấp thuận - Phase 1.
 
 ## Vấn đề
 
@@ -28,15 +28,15 @@ Hành vi khi phiên đã đạt giới hạn:
   nghĩa: "không có gì đổi" thay vì lỗi.
 * Giữ state cũ bảo toàn nội dung người dùng đã gõ; host có thể quyết định commit
   rồi mở phiên mới.
-* Không tự xóa đầu buffer vì sẽ âm thầm mất nội dung — nguy hiểm cho thư viện nhúng.
+* Không tự xóa đầu buffer vì sẽ âm thầm mất nội dung - nguy hiểm cho thư viện nhúng.
 
 ## Phương án bị loại
 
-* **Panic khi vượt giới hạn:** bị loại — thư viện nhúng không được panic vì input.
-* **Tự động xóa đầu (ring buffer):** bị loại — mất dữ liệu âm thầm, khó debug.
-* **Trả `Result` lỗi cho `them_ky_tu`:** bị loại — vượt giới hạn không phải lỗi
+* **Panic khi vượt giới hạn:** bị loại - thư viện nhúng không được panic vì input.
+* **Tự động xóa đầu (ring buffer):** bị loại - mất dữ liệu âm thầm, khó debug.
+* **Trả `Result` lỗi cho `them_ky_tu`:** bị loại - vượt giới hạn không phải lỗi
   lập trình, là trạng thái; `KhongDoi` hợp lý hơn.
-* **Giới hạn theo byte thay vì thao tác:** bị loại — thao tác ổn định, dễ suy luận
+* **Giới hạn theo byte thay vì thao tác:** bị loại - thao tác ổn định, dễ suy luận
   cho host; byte phụ thuộc encoding.
 
 ## Bất biến

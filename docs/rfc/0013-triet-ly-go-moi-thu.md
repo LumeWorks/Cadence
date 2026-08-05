@@ -1,6 +1,6 @@
-# RFC 0013 — Triết lý "Gõ mọi thứ bạn cần"
+# RFC 0013 - Triết lý "Gõ mọi thứ bạn cần"
 
-Trạng thái: Chấp thuận — Phase 3.
+Trạng thái: Chấp thuận - Phase 3.
 
 ## Vấn đề
 
@@ -10,20 +10,20 @@ thuận trộn tiếng Việt bị hỏng:
 
 ```text
 raw:     cargo build lỗi rồi
-telex:   cảrgo build lỗỉ ồi   (sai — `r` trong cargo thành dấu hỏi)
+telex:   cảrgo build lỗỉ ồi   (sai - `r` trong cargo thành dấu hỏi)
 kỳ vọng: cargo build lỗi rồi
 ```
 
 Người dùng không thể bật/tắt bộ gõ liên tục khi chuyển giữa tiếng Việt, code,
 URL, command và chat. Cadence phải tự quyết định **đoạn nào** được biến đổi
-Telex, **đoạn nào** được giữ nguyên — mà không phán xét nội dung.
+Telex, **đoạn nào** được giữ nguyên - mà không phán xét nội dung.
 
 ## Quyết định
 
 Triết lý chính thức:
 
 ```text
-Cadence — Gõ mọi thứ bạn cần.
+Cadence - Gõ mọi thứ bạn cần.
 ```
 
 Nguyên tắc xử lý:
@@ -99,21 +99,21 @@ brooooo          → brooooo       (ký tự lặp, raw)
 ## Phản ví dụ
 
 ```text
-async   → áync        (sai — identifier phải giữ raw)
-class   → clá         (sai — `cl` onset không hợp lệ, raw)
-cargo   → cảrgo       (sai — tone xuyên ranh giới từ)
+async   → áync        (sai - identifier phải giữ raw)
+class   → clá         (sai - `cl` onset không hợp lệ, raw)
+cargo   → cảrgo       (sai - tone xuyên ranh giới từ)
 ```
 
 ## Phương án bị loại
 
-* **Một cờ `mode_code` cho toàn phiên**: bị loại — không cho phép code trộn
+* **Một cờ `mode_code` cho toàn phiên**: bị loại - không cho phép code trộn
   tiếng Việt trong cùng phiên; vi phạm "chuyển context trong phiên".
-* **N boolean `la_code`/`la_url`/...**: bị loại — phình API, khó bảo trì, trạng
+* **N boolean `la_code`/`la_url`/...**: bị loại - phình API, khó bảo trì, trạng
   thái không loại trừ nhau.
-* **Điểm số `f32`/`f64`**: bị loại — không deterministic trực quan, khó audit.
-* **Từ điển keyword hàng nghìn phần tử**: bị loại — vi phạm "không dùng từ
+* **Điểm số `f32`/`f64`**: bị loại - không deterministic trực quan, khó audit.
+* **Từ điển keyword hàng nghìn phần tử**: bị loại - vi phạm "không dùng từ
   điển", nặng, không cần thiết khi nhận cấu trúc đủ.
-* **Regex trong hot path**: bị loại — vi phạm chính sách hot path.
+* **Regex trong hot path**: bị loại - vi phạm chính sách hot path.
 
 ## Tác động hiệu năng
 

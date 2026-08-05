@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
-//! Phiên soạn thảo — stateful, giữ lịch sử thao tác làm nguồn sự thật.
+//! Phiên soạn thảo - stateful, giữ lịch sử thao tác làm nguồn sự thật.
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -168,7 +168,7 @@ impl PhienGo {
     /// Khôi phục nguyên bản: hiển thị đúng raw input, không biến đổi Telex.
     ///
     /// Phase 2: Telex engine đã đầy đủ. Method này hiện là no-op vì pipeline
-    /// luôn dựng lại từ raw — `noi_dung_goc()` đã cung cấp raw output.
+    /// luôn dựng lại từ raw - `noi_dung_goc()` đã cung cấp raw output.
     /// TODO(phase-3): thêm toggle để switch giữa Telex output và raw output
     /// trong cùng phiên, idempotent.
     pub fn khoi_phuc_nguyen_ban(&mut self) -> KetQuaXuLy {

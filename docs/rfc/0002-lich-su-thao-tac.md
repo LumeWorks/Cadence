@@ -1,6 +1,6 @@
-# RFC 0002 — Lịch sử thao tác
+# RFC 0002 - Lịch sử thao tác
 
-Trạng thái: Chấp thuận — Phase 1.
+Trạng thái: Chấp thuận - Phase 1.
 
 ## Vấn đề
 
@@ -50,7 +50,7 @@ incremental).
 
 ## Phương án bị loại
 
-* **Gap buffer / piece table:** bị loại cho Phase 1 — overkill khi độ dài token
+* **Gap buffer / piece table:** bị loại cho Phase 1 - overkill khi độ dài token
   bị giới hạn bởi `gioi_han_thao_tac` (≤ 4096) và replay O(n) đã đủ.
 * **Cache incremental:** bị loại vì tăng phức tạp và rủi ro sai lệch; benchmark
   cho thấy replay 128 thao tác vẫn cỡ µs, chấp nhận được.

@@ -1,6 +1,6 @@
-# RFC 0016 — Teencode, lặp ký tự, và emoticon
+# RFC 0016 - Teencode, lặp ký tự, và emoticon
 
-Trạng thái: Chấp thuận — Phase 3 (đã triển khai).
+Trạng thái: Chấp thuận - Phase 3 (đã triển khai).
 
 ## Vấn đề
 
@@ -16,9 +16,9 @@ Run 3+ chữ cái hình chữ doubled-base (`a`/`e`/`o`/`d`) giống nhau liên 
 bắt đầu sau một ký tự khác trong đoạn → bảo toàn raw:
 
 ```text
-"brooo"  → "brooo"   (raw — lặp có chữ khác trước)
-"ooo"    → "oo"      (escape Phase 2 — nguyên đoạn, không phải teencode lặp)
-"aa"     → "â"       (Telex — shape transform bình thường)
+"brooo"  → "brooo"   (raw - lặp có chữ khác trước)
+"ooo"    → "oo"      (escape Phase 2 - nguyên đoạn, không phải teencode lặp)
+"aa"     → "â"       (Telex - shape transform bình thường)
 ```
 
 Tiếng Việt không có nguyên âm/phụ âm doubled-base lặp 3+, nên rule chỉ chạm
@@ -45,10 +45,10 @@ phân loại `Emoji` → render nguyên bản, không qua Telex.
 
 ## Phương án bị loại
 
-* **Giới hạn cứng ký tự lặp**: bị loại — `gioi_han_thao_tac` đã giới hạn tổng
+* **Giới hạn cứng ký tự lặp**: bị loại - `gioi_han_thao_tac` đã giới hạn tổng
   thao tác; không cần rule riêng.
-* **Sửa teencode thành chuẩn**: bị loại — vi phạm "không phán xét chính tả".
-* **Từ điển teencode**: bị loại — phình binary, không cần thiết.
+* **Sửa teencode thành chuẩn**: bị loại - vi phạm "không phán xét chính tả".
+* **Từ điển teencode**: bị loại - phình binary, không cần thiết.
 
 ## Tác động public API
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
-//! Bộ gõ — factory bất biến tạo phiên.
+//! Bộ gõ - factory bất biến tạo phiên.
 
 use crate::cau_hinh::{CauHinh, LoiCauHinh};
 use crate::phien_go::PhienGo;

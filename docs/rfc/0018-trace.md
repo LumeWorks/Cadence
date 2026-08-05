@@ -1,6 +1,6 @@
-# RFC 0018 — Trace API có cấu trúc
+# RFC 0018 - Trace API có cấu trúc
 
-Trạng thái: Chấp thuận — Phase 3 (chưa triển khai).
+Trạng thái: Chấp thuận - Phase 3 (chưa triển khai).
 
 ## Vấn đề
 
@@ -58,6 +58,6 @@ Feature `trace` yêu cầu `alloc` (đã có). Không thêm dependency.
 
 ## Phương án bị loại
 
-* **`log` crate**: bị loại — dependency ngoài, không `no_std` mặc định.
-* **Callback mỗi thao tác**: bị loại — phức tạp, overhead ngay cả khi không dùng.
-* **Global trace buffer**: bị loại — vi phạm "mỗi PhienGo độc lập".
+* **`log` crate**: bị loại - dependency ngoài, không `no_std` mặc định.
+* **Callback mỗi thao tác**: bị loại - phức tạp, overhead ngay cả khi không dùng.
+* **Global trace buffer**: bị loại - vi phạm "mỗi PhienGo độc lập".

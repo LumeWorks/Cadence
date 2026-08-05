@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
-//! Test nhận diện ngữ cảnh qua public API — URL, email, đường dẫn, code,
+//! Test nhận diện ngữ cảnh qua public API - URL, email, đường dẫn, code,
 //! namespace `::`, phép gán `=`, emoticon đều buộc raw.
 
 use cadence::{BoGo, CauHinh};

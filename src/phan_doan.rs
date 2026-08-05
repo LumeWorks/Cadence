@@ -36,7 +36,7 @@ pub(crate) enum LoaiDoan {
     KyThuat,
     /// Non-ASCII không phải chữ Việt (emoji, combining mark, dấu câu Unicode).
     Emoji,
-    /// Ký tự do `them_nguyen_ban` — literal, tạo ranh giới đoạn.
+    /// Ký tự do `them_nguyen_ban` - literal, tạo ranh giới đoạn.
     NguyenBan,
 }
 
@@ -147,7 +147,7 @@ fn phan_loai(t: &ThaoTacNhap, kieu_telex: KieuTelex) -> LoaiDoan {
         } else if la_ky_thuat(c) {
             LoaiDoan::KyThuat
         } else {
-            // Các ký tự ASCII còn lại (control, ký tự lạ) — giữ nguyên.
+            // Các ký tự ASCII còn lại (control, ký tự lạ) - giữ nguyên.
             LoaiDoan::KyThuat
         }
     } else {

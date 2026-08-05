@@ -1,6 +1,6 @@
-# RFC 0008 — Phân tích âm tiết tiếng Việt
+# RFC 0008 - Phân tích âm tiết tiếng Việt
 
-Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
+Trạng thái: Chấp thuận - Phase 2 (đã triển khai).
 
 ## Vấn đề
 
@@ -54,9 +54,9 @@ Trả về `MucHopLe::CoTheTiepTuc` (hợp lệ hoặc có thể tiếp tục) h
 
 ## Phương án bị loại
 
-* **Từ điển vần đầy đủ**: bị loại cho Phase 2 — phức tạp, tăng kích thước.
-* **Regex**: bị loại — policy không dùng regex.
-* **Không parse, luôn giữ Telex**: bị loại — `asf` → `ás` sai chính tả, cần
+* **Từ điển vần đầy đủ**: bị loại cho Phase 2 - phức tạp, tăng kích thước.
+* **Regex**: bị loại - policy không dùng regex.
+* **Không parse, luôn giữ Telex**: bị loại - `asf` → `ás` sai chính tả, cần
   fallback raw.
 
 ## Bất biến

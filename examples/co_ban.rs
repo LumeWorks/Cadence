@@ -31,7 +31,7 @@ fn main() {
     // Snapshot bây giờ: "Caadence".
     println!("Sau chen giua: {}", phien.ban_chup().noi_dung());
 
-    // Commit — phiên trả nội dung và tự đặt lại.
+    // Commit - phiên trả nội dung và tự đặt lại.
     match phien.chap_nhan() {
         KetQuaXuLy::ChapNhan { noi_dung } => {
             println!("Da commit: {noi_dung}");

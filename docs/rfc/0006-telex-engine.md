@@ -1,6 +1,6 @@
-# RFC 0006 — Telex engine: hình chữ và dấu thanh
+# RFC 0006 - Telex engine: hình chữ và dấu thanh
 
-Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
+Trạng thái: Chấp thuận - Phase 2 (đã triển khai).
 
 ## Vấn đề
 
@@ -70,10 +70,10 @@ Escape luôn giữ kết quả Telex (ý định người dùng), không fallbac
 
 ## Phương án bị loại
 
-* **Đặt dấu trên nguyên âm cuối bất kể**: bị loại — sai chính tả (`uơì` thay vì
+* **Đặt dấu trên nguyên âm cuối bất kể**: bị loại - sai chính tả (`uơì` thay vì
   `ười`).
-* **Bảng vần đầy đủ**: bị loại cho Phase 2 — phức tạp, dành cho Phase 3.
-* **Regex cho pattern matching**: bị loại — policy không dùng regex.
+* **Bảng vần đầy đủ**: bị loại cho Phase 2 - phức tạp, dành cho Phase 3.
+* **Regex cho pattern matching**: bị loại - policy không dùng regex.
 
 ## Bất biến
 

@@ -1,6 +1,6 @@
-# RFC 0019 — Corpus và acceptance tests Phase 3
+# RFC 0019 - Corpus và acceptance tests Phase 3
 
-Trạng thái: Chấp thuận — Phase 3 (chưa triển khai).
+Trạng thái: Chấp thuận - Phase 3 (chưa triển khai).
 
 ## Vấn đề
 
@@ -36,9 +36,9 @@ Bất biến kiểm chứng qua `proptest`:
 ### Benchmark (`benches/phase3.rs`)
 
 Criterion microbench:
-* `bench_chu_thuan` — "tieengs" (Telex path)
-* `bench_code_tron` — "cargo build lỗi rồi =))" (segment + recognize path)
-* `bench_url` — "https://example.com/path" (all-raw path)
+* `bench_chu_thuan` - "tieengs" (Telex path)
+* `bench_code_tron` - "cargo build lỗi rồi =))" (segment + recognize path)
+* `bench_url` - "https://example.com/path" (all-raw path)
 * So sánh Phase 2 baseline vs Phase 3 không chậm hơn 2x.
 
 ## Tác động `no_std`
