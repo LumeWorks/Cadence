@@ -112,11 +112,13 @@ impl KieuHoa {
         }
     }
 
-    /// Áp kiểu hoa lên một ký tự thường.
+    /// Áp kiểu hoa lên một ký tự thường (dùng Unicode uppercase để hỗ trợ đ→Đ).
     pub(crate) fn ap_dung(self, c: char) -> char {
         match self {
             Self::Thuong => c,
-            Self::Hoa => c.to_ascii_uppercase(),
+            // Vietnamese uppercase luôn là 1 ký tự; fallback an toàn nếu
+            // `to_uppercase` rỗng (không xảy ra với char hợp lệ).
+            Self::Hoa => c.to_uppercase().next().unwrap_or(c),
         }
     }
 }

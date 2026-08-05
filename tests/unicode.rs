@@ -191,9 +191,8 @@ fn grapheme_index_dung() {
     phien.them_ky_tu('e');
     phien.them_ky_tu('\u{0301}');
     phien.them_ky_tu('😀');
-    // Di đến sau grapheme thứ 2 ("e\u{0301}"): 3 thao tác (a, e, combining).
+    // Phase 2: di theo grapheme. 2 di_phai → sau grapheme thứ 2 ("e\u{0301}").
     phien.ve_dau();
-    phien.di_phai();
     phien.di_phai();
     phien.di_phai();
     let ban_chup = phien.ban_chup();

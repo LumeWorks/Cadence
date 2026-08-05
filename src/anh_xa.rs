@@ -1,0 +1,186 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) 2026 Lê Hùng Quang Minh
+
+//! Pipeline render + ánh xạ con trỏ từ raw thao tác sang output grapheme.
+//!
+//! Sau khi Telex biến đổi raw history thành `DonViRender`, module này:
+//!
+//! ```text
+//! don_vi → render chuỗi output → raw_to_byte → navigable → con trỏ công khai
+//! ```
+
+use alloc::string::String;
+use alloc::vec;
+use alloc::vec::Vec;
+
+use unicode_segmentation::UnicodeSegmentation;
+
+use crate::cau_hinh::DangUnicode;
+use crate::loai_noi_dung::LoaiNoiDung;
+use crate::render;
+use crate::telex::{DonViRender, NoiDungDonVi};
+use crate::thao_tac::ThaoTacNhap;
+
+/// Kết quả của một lần dựng lại snapshot.
+pub(crate) struct KetQuaRender {
+    /// Chuỗi output đã render (theo dạng Unicode đã chọn).
+    pub(crate) noi_dung: String,
+    /// Ánh xạ raw position → byte offset trong output (size = n+1).
+    pub(crate) raw_to_byte: Vec<usize>,
+    /// Các raw position là ranh giới grapheme navigable (sắp xếp tăng).
+    pub(crate) navigable: Vec<usize>,
+    /// Loại nội dung.
+    pub(crate) loai_noi_dung: LoaiNoiDung,
+}
+
+/// Dựng lại toàn bộ snapshot từ lịch sử thao tác.
+pub(crate) fn xay_lai(thao_tac: &[ThaoTacNhap], dang: DangUnicode) -> KetQuaRender {
+    let don_vi = crate::telex::xu_ly_doan_chu(thao_tac);
+    let mut noi_dung = String::new();
+    let mut byte_len: Vec<usize> = Vec::with_capacity(don_vi.len());
+    for u in &don_vi {
+        let s = render_don_vi(u, dang);
+        byte_len.push(s.len());
+        noi_dung.push_str(&s);
+    }
+    let n = thao_tac.len();
+    let raw_to_byte = tinh_raw_to_byte(&don_vi, &byte_len, n);
+    let navigable = tinh_navigable(&noi_dung, &raw_to_byte);
+    let noi_dung_goc: String = thao_tac.iter().map(|t| t.ky_tu).collect();
+    let loai_noi_dung = loai_noi_dung_cua(&noi_dung, &noi_dung_goc);
+    KetQuaRender {
+        noi_dung,
+        raw_to_byte,
+        navigable,
+        loai_noi_dung,
+    }
+}
+
+/// Render một đơn vị ra chuỗi theo dạng Unicode.
+fn render_don_vi(u: &DonViRender, dang: DangUnicode) -> String {
+    match &u.noi_dung {
+        NoiDungDonVi::Chu(chu) => render::render_chu(chu, dang),
+        NoiDungDonVi::Chuong(c) => {
+            // Literal: giữ nguyên, không normalize (emoji, dấu câu, ASCII).
+            let mut s = String::new();
+            s.push(*c);
+            s
+        }
+    }
+}
+
+/// Tính `raw_to_byte`: ánh xạ raw position → byte offset (snap interior).
+fn tinh_raw_to_byte(don_vi: &[DonViRender], byte_len: &[usize], n: usize) -> Vec<usize> {
+    let mut raw_to_byte = vec![0usize; n + 1];
+    let mut byte_offset = 0usize;
+    for (u, &blen) in don_vi.iter().zip(byte_len.iter()) {
+        let start = u.raw_bat_dau;
+        let end = u.raw_ket_thuc;
+        let start_byte = byte_offset;
+        raw_to_byte[start] = start_byte;
+        byte_offset += blen;
+        let end_byte = byte_offset;
+        raw_to_byte[end] = end_byte;
+        // Vị trí interior (raw giữa start..end) snap về ranh giới gần nhất,
+        // tie → end (tiến) để chèn giữa một grapheme gộp ưu tiên phía sau.
+        for (r, slot) in raw_to_byte.iter_mut().enumerate() {
+            if r <= start || r >= end {
+                continue;
+            }
+            let dist_start = r - start;
+            let dist_end = end - r;
+            *slot = if dist_end < dist_start {
+                end_byte
+            } else {
+                start_byte
+            };
+        }
+    }
+    raw_to_byte
+}
+
+/// Tính các raw position là ranh giới grapheme navigable.
+///
+/// Một raw position là navigable nếu byte offset của nó là ranh giới
+/// grapheme và khác byte offset của raw position ngay trước nó (mới đạt
+/// một grapheme mới).
+fn tinh_navigable(noi_dung: &str, raw_to_byte: &[usize]) -> Vec<usize> {
+    let mut ranh_gioi_grapheme: Vec<usize> =
+        noi_dung.grapheme_indices(true).map(|(i, _)| i).collect();
+    ranh_gioi_grapheme.push(noi_dung.len());
+    let mut ket_qua = Vec::new();
+    let mut byte_truoc: Option<usize> = None;
+    for (r, &byte) in raw_to_byte.iter().enumerate() {
+        if ranh_gioi_grapheme.contains(&byte) && Some(byte) != byte_truoc {
+            ket_qua.push(r);
+            byte_truoc = Some(byte);
+        }
+    }
+    ket_qua
+}
+
+/// Snap một raw position (có thể interior) về navigable gần nhất.
+/// Tie → forward (raw position lớn hơn).
+pub(crate) fn snap_raw(r: usize, navigable: &[usize]) -> usize {
+    match navigable.binary_search(&r) {
+        Ok(_) => r,
+        Err(pos) => {
+            let truoc = if pos == 0 {
+                None
+            } else {
+                navigable.get(pos - 1).copied()
+            };
+            let sau = navigable.get(pos).copied();
+            match (truoc, sau) {
+                (Some(a), Some(b)) => {
+                    let da = r - a;
+                    let db = b - r;
+                    if db < da { b } else { a }
+                }
+                (Some(a), None) => a,
+                (None, Some(b)) => b,
+                (None, None) => r,
+            }
+        }
+    }
+}
+
+/// Di chuyển con trỏ raw về trái một grapheme (raw position navigable trước).
+pub(crate) fn di_trai_raw(r: usize, navigable: &[usize]) -> usize {
+    let r_snapped = snap_raw(r, navigable);
+    match navigable.binary_search(&r_snapped) {
+        Ok(pos) if pos > 0 => navigable[pos - 1],
+        _ => r_snapped,
+    }
+}
+
+/// Di chuyển con trỏ raw về phải một grapheme (raw position navigable sau).
+pub(crate) fn di_phai_raw(r: usize, navigable: &[usize]) -> usize {
+    let r_snapped = snap_raw(r, navigable);
+    match navigable.binary_search(&r_snapped) {
+        Ok(pos) => {
+            if pos + 1 < navigable.len() {
+                navigable[pos + 1]
+            } else {
+                r_snapped
+            }
+        }
+        Err(pos) => navigable.get(pos).copied().unwrap_or(r_snapped),
+    }
+}
+
+/// Byte offset trong output cho raw position (đã snap).
+pub(crate) fn byte_tai(r: usize, raw_to_byte: &[usize]) -> usize {
+    raw_to_byte[r.min(raw_to_byte.len() - 1)]
+}
+
+/// Xác định loại nội dung từ output và raw.
+fn loai_noi_dung_cua(noi_dung: &str, noi_dung_goc: &str) -> LoaiNoiDung {
+    if noi_dung_goc.is_empty() {
+        LoaiNoiDung::Trong
+    } else if noi_dung == noi_dung_goc {
+        LoaiNoiDung::NguyenBan
+    } else {
+        LoaiNoiDung::BienDoiTelex
+    }
+}

@@ -6,17 +6,17 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use crate::anh_xa;
 use crate::ban_chup::BanChupSoan;
 use crate::cau_hinh::{CauHinh, DangUnicode};
-use crate::chu_viet::ChuCaiViet;
 use crate::ket_qua::KetQuaXuLy;
-use crate::render;
 use crate::thao_tac::ThaoTacNhap;
 
 /// Phiên soạn thảo của một đoạn composition.
 ///
 /// Lịch sử thao tác là nguồn sự thật; snapshot luôn được dựng lại từ
-/// lịch sử sau mỗi thay đổi. Con trỏ nội bộ nằm giữa các thao tác.
+/// lịch sử sau mỗi thay đổi. Con trỏ nội bộ là raw position (số thao tác
+/// trước con trỏ), luôn được snap về ranh giới grapheme navigable.
 pub struct PhienGo {
     /// Bản sao giới hạn thao tác cần thiết cho phiên.
     gioi_han_thao_tac: usize,
@@ -24,12 +24,14 @@ pub struct PhienGo {
     dang_unicode: DangUnicode,
     /// Lịch sử thao tác (nguồn sự thật).
     lich_su: Vec<ThaoTacNhap>,
-    /// Con trỏ nội bộ: số thao tác nằm trước con trỏ (`0..=lich_su.len()`).
+    /// Con trỏ nội bộ: số thao tác raw trước con trỏ (`0..=lich_su.len()`).
     con_tro: usize,
+    /// Ánh xạ raw position → byte offset (tính lại mỗi replay).
+    raw_to_byte: Vec<usize>,
+    /// Các raw position là ranh giới grapheme navigable.
+    navigable: Vec<usize>,
     /// Snapshot hiện tại, dựng lại sau mỗi thay đổi.
     ban_chup_hien_tai: BanChupSoan,
-    /// Buffer render tái sử dụng để giảm allocation.
-    bo_dem: String,
 }
 
 impl PhienGo {
@@ -40,8 +42,9 @@ impl PhienGo {
             dang_unicode: cau_hinh.dang_unicode(),
             lich_su: Vec::new(),
             con_tro: 0,
+            raw_to_byte: alloc::vec![0],
+            navigable: alloc::vec![0],
             ban_chup_hien_tai: BanChupSoan::rong(),
-            bo_dem: String::new(),
         }
     }
 
@@ -57,44 +60,45 @@ impl PhienGo {
         self.ban_chup_hien_tai.dang_trong()
     }
 
-    /// Thêm ký tự theo chế độ tự động (sẽ do Telex biến đổi trong Phase 2).
+    /// Thêm ký tự theo chế độ tự động (do Telex biến đổi).
     ///
-    /// Phase 1: render nguyên bản, kết quả hiển thị giống `them_nguyen_ban`.
     /// Khi phiên đã đạt giới hạn thao tác, trả `KhongDoi` và giữ nguyên state.
     pub fn them_ky_tu(&mut self, ky_tu: char) -> KetQuaXuLy {
         self.chen_thao_tac(ThaoTacNhap::tu_dong(ky_tu))
     }
 
-    /// Thêm ký tự nguyên bản, giữ đúng ký tự người dùng bấm, không biến đổi.
-    ///
-    /// Phase 1: kết quả hiển thị giống `them_ky_tu`, nhưng lịch sử ghi cờ
-    /// `NguyenBan` để Phase 2 biết không áp dụng Telex cho ký tự này.
+    /// Thêm ký tự nguyên bản, giữ đúng ký tự người dùng bấm, không biến đổi
+    /// Telex. Ký tự nguyên bản cũng chặn rule Telex nối xuyên qua nó.
     pub fn them_nguyen_ban(&mut self, ky_tu: char) -> KetQuaXuLy {
         self.chen_thao_tac(ThaoTacNhap::nguyen_ban(ky_tu))
     }
 
-    /// Di chuyển con trỏ sang trái một thao tác. Trả `KhongDoi` nếu đang ở đầu.
+    /// Di chuyển con trỏ sang trái một grapheme hiển thị. Trả `KhongDoi`
+    /// nếu đang ở đầu.
     pub fn di_trai(&mut self) -> KetQuaXuLy {
-        if self.con_tro == 0 {
+        let moi = anh_xa::di_trai_raw(self.con_tro, &self.navigable);
+        if moi == self.con_tro {
             return KetQuaXuLy::KhongDoi;
         }
-        self.con_tro -= 1;
-        self.xay_lai_ban_chup();
+        self.con_tro = moi;
+        self.cap_nhat_con_tro();
         KetQuaXuLy::CapNhat
     }
 
-    /// Di chuyển con trỏ sang phải một thao tác. Trả `KhongDoi` nếu đang ở cuối.
+    /// Di chuyển con trỏ sang phải một grapheme hiển thị. Trả `KhongDoi`
+    /// nếu đang ở cuối.
     pub fn di_phai(&mut self) -> KetQuaXuLy {
-        if self.con_tro >= self.lich_su.len() {
+        let moi = anh_xa::di_phai_raw(self.con_tro, &self.navigable);
+        if moi == self.con_tro {
             return KetQuaXuLy::KhongDoi;
         }
-        self.con_tro += 1;
-        self.xay_lai_ban_chup();
+        self.con_tro = moi;
+        self.cap_nhat_con_tro();
         KetQuaXuLy::CapNhat
     }
 
-    /// Xóa thao tác ngay trước con trỏ (backspace). Trả `KhongDoi` nếu
-    /// con trỏ đang ở đầu lịch sử.
+    /// Xóa thao tác raw ngay trước con trỏ (backspace hoàn tác một thao tác
+    /// nhập). Trả `KhongDoi` nếu con trỏ đang ở đầu lịch sử.
     pub fn xoa_lui(&mut self) -> KetQuaXuLy {
         if self.con_tro == 0 {
             return KetQuaXuLy::KhongDoi;
@@ -105,8 +109,8 @@ impl PhienGo {
         KetQuaXuLy::CapNhat
     }
 
-    /// Xóa thao tác ngay sau con trỏ (delete). Trả `KhongDoi` nếu con trỏ
-    /// đang ở cuối lịch sử.
+    /// Xóa thao tác raw ngay sau con trỏ (delete). Trả `KhongDoi` nếu con
+    /// trỏ đang ở cuối lịch sử.
     pub fn xoa_phia_truoc(&mut self) -> KetQuaXuLy {
         if self.con_tro >= self.lich_su.len() {
             return KetQuaXuLy::KhongDoi;
@@ -122,7 +126,7 @@ impl PhienGo {
             return KetQuaXuLy::KhongDoi;
         }
         self.con_tro = 0;
-        self.xay_lai_ban_chup();
+        self.cap_nhat_con_tro();
         KetQuaXuLy::CapNhat
     }
 
@@ -133,16 +137,18 @@ impl PhienGo {
             return KetQuaXuLy::KhongDoi;
         }
         self.con_tro = cuoi;
-        self.xay_lai_ban_chup();
+        self.cap_nhat_con_tro();
         KetQuaXuLy::CapNhat
     }
 
-    /// Khôi phục nguyên bản: đảm bảo snapshot hiển thị đúng nội dung gốc
-    /// người dùng nhập, không bị biến đổi.
+    /// Khôi phục nguyên bản: hiển thị đúng raw input, không biến đổi Telex.
     ///
-    /// Phase 1 luôn render nguyên bản nên không có gì cần khôi phục; method
-    /// idempotent và trả `KhongDoi`. Phase 2 sẽ dùng nó để hủy biến đổi Telex.
+    /// Phase 2 bước hiện tại: Telex chưa hoàn chỉnh nên output vẫn bằng raw.
+    /// TODO(phase-2): khi Telex đầy đủ, method sẽ đánh dấu các thao tác hiện
+    /// tại không còn được biến đổi và render nguyên bản, idempotent.
     pub fn khoi_phuc_nguyen_ban(&mut self) -> KetQuaXuLy {
+        // Pipeline hiện tại chưa biến đổi (chỉ hình chữ ở commit này), nên
+        // raw đã bằng output. Giữ idempotent.
         KetQuaXuLy::KhongDoi
     }
 
@@ -167,7 +173,8 @@ impl PhienGo {
     fn reset(&mut self) {
         self.lich_su.clear();
         self.con_tro = 0;
-        self.bo_dem.clear();
+        self.raw_to_byte = alloc::vec![0];
+        self.navigable = alloc::vec![0];
         self.ban_chup_hien_tai = BanChupSoan::rong();
     }
 
@@ -182,39 +189,26 @@ impl PhienGo {
         KetQuaXuLy::CapNhat
     }
 
-    /// Render nguyên bản toàn lịch sử vào buffer và dựng lại snapshot.
-    ///
-    /// Phase 2 bước đầu: mỗi ký tự raw được phân tích thành `ChuCaiViet`
-    /// rồi render lại qua module render. Kết quả hiển thị vẫn bằng raw
-    /// (chưa có biến đổi Telex) nhưng pipeline render đã được kết nối.
+    /// Dựng lại toàn bộ snapshot từ lịch sử thao tác qua pipeline Telex.
     fn xay_lai_ban_chup(&mut self) {
-        self.bo_dem.clear();
-        for thao_tac in &self.lich_su {
-            let chu = match render::phan_tich_ky_tu(thao_tac.ky_tu) {
-                Some(c) => c,
-                None => ChuCaiViet::thuong(thao_tac.ky_tu),
-            };
-            self.bo_dem
-                .push_str(&render::render_chu(&chu, self.dang_unicode));
-        }
-        // Nội dung gốc: raw byte-for-byte.
+        let ket_qua = anh_xa::xay_lai(&self.lich_su, self.dang_unicode);
+        let con_tro_snap = anh_xa::snap_raw(self.con_tro, &ket_qua.navigable);
+        self.con_tro = con_tro_snap;
+        let byte = anh_xa::byte_tai(con_tro_snap, &ket_qua.raw_to_byte);
         let noi_dung_goc: String = self.lich_su.iter().map(|t| t.ky_tu).collect();
-        // Vị trí byte con trỏ: render tiền tố raw trước con trỏ.
-        // TODO(phase-2): thay bằng ánh xạ provenance khi Telex gộp thao tác.
-        let mut tien_to = String::new();
-        for thao_tac in &self.lich_su[..self.con_tro] {
-            let chu = match render::phan_tich_ky_tu(thao_tac.ky_tu) {
-                Some(c) => c,
-                None => ChuCaiViet::thuong(thao_tac.ky_tu),
-            };
-            tien_to.push_str(&render::render_chu(&chu, self.dang_unicode));
-        }
-        let loai = if noi_dung_goc.is_empty() {
-            crate::loai_noi_dung::LoaiNoiDung::Trong
-        } else {
-            crate::loai_noi_dung::LoaiNoiDung::NguyenBan
-        };
+        self.raw_to_byte = ket_qua.raw_to_byte;
+        self.navigable = ket_qua.navigable;
         self.ban_chup_hien_tai =
-            BanChupSoan::dung(self.bo_dem.clone(), noi_dung_goc, tien_to.len(), loai);
+            BanChupSoan::dung(ket_qua.noi_dung, noi_dung_goc, byte, ket_qua.loai_noi_dung);
+    }
+
+    /// Chỉ cập nhật con trỏ (sau khi di chuyển) mà không replay toàn bộ.
+    /// Tính lại byte offset từ raw_to_byte hiện có.
+    fn cap_nhat_con_tro(&mut self) {
+        let byte = anh_xa::byte_tai(self.con_tro, &self.raw_to_byte);
+        let noi_dung = String::from(self.ban_chup_hien_tai.noi_dung());
+        let noi_dung_goc = String::from(self.ban_chup_hien_tai.noi_dung_goc());
+        let loai = self.ban_chup_hien_tai.loai_noi_dung();
+        self.ban_chup_hien_tai = BanChupSoan::dung(noi_dung, noi_dung_goc, byte, loai);
     }
 }

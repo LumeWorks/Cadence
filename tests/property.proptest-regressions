@@ -5,3 +5,8 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
 cc 1e8ca3340edf2bb823139c14612a2d7f43049a9285e3be3ad0aab65100f21c0b # shrinks to tat_ca_hanh_dong = [Reset]
+cc 231ae34088c71d4d407c104a53e907cbfe8cb173f1c2826a1a69dc22356be587 # shrinks to tat_ca_hanh_dong = [ThemNguyenBan('\u{301}'), VeDau, Them('a')]
+cc 12b788815af9a3c4e19e9816ef7b91700364106cd76e501d32d837cfd20923e3 # shrinks to tat_ca_hanh_dong = [ThemNguyenBan('\u{200d}'), DiTrai], c = 'a'
+cc 3beebc3458e1f4eeeb17e1b531d661f8451dcfc562650de6096fb238cf137c65 # shrinks to hanh_dong_a = [Them('\u{301}'), DiTrai, Them('a'), Them('a')], hanh_dong_b = []
+cc 53ff3a4d6e01ff442ecb990c307f37dcc848dc2a24ef1e3a5d97d88889450058 # shrinks to tat_ca_hanh_dong = [Them('a'), Them('\u{301}'), VeDau, DiPhai, Them('😀')]
+cc d9acc9766ea593f6d02a4d9b804e1b0e595d675e8de371eafc50677e2fbf2f5e # shrinks to hanh_dong_a = [], hanh_dong_b = [ThemNguyenBan('\u{301}'), VeDau, Them('a'), Them('b')]
