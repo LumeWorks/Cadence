@@ -12,16 +12,15 @@
 //! Không dùng regex, từ điển lớn hay parser framework. Chỉ match bảng ký tự
 //! ASCII và cấu trúc đoạn tuyến tính.
 
+use crate::phan_doan::{Doan, LoaiDoan};
+use crate::thao_tac::ThaoTacNhap;
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::phan_doan::{Doan, LoaiDoan};
-use crate::thao_tac::ThaoTacNhap;
 
 /// Bằng chứng lựa chọn cho một đoạn. Dùng cho trace và quyết định.
-#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum BangChungLuaChon {
+pub enum BangChungLuaChon {
     /// Âm tiết tiếng Việt hoàn chỉnh (onset + nucleus + coda hợp lệ).
     AmTietTiengVietHoanChinh,
     /// Biến đổi hình chữ rõ (aa/ee/oo/dd/aw/ow/uw).
@@ -49,7 +48,6 @@ pub(crate) enum BangChungLuaChon {
 }
 
 /// Kết quả nhận diện mỗi đoạn: có buộc raw không, và bằng chứng.
-#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct KetQuaNhanDien {
     /// `true` nếu đoạn phải giữ nguyên bản (bỏ Telex).

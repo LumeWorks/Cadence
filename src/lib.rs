@@ -23,6 +23,8 @@ pub mod phien_go;
 pub(crate) mod render;
 pub(crate) mod telex;
 pub(crate) mod thao_tac;
+#[cfg(feature = "trace")]
+pub mod trace;
 pub mod vi_tri;
 
 pub use ban_chup::BanChupSoan;
@@ -32,3 +34,8 @@ pub use ket_qua::KetQuaXuLy;
 pub use loai_noi_dung::LoaiNoiDung;
 pub use phien_go::PhienGo;
 pub use vi_tri::ViTriVanBan;
+
+#[cfg(feature = "trace")]
+pub use ngu_canh::BangChungLuaChon;
+#[cfg(feature = "trace")]
+pub use trace::{TraceKetQua, TraceStep};

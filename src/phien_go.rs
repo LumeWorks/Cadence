@@ -38,6 +38,9 @@ pub struct PhienGo {
     navigable: Vec<usize>,
     /// Snapshot hiện tại, dựng lại sau mỗi thay đổi.
     ban_chup_hien_tai: BanChupSoan,
+    /// Trace bước quyết định (chỉ khi feature `trace`).
+    #[cfg(feature = "trace")]
+    trace: alloc::vec::Vec<crate::trace::TraceStep>,
 }
 
 impl PhienGo {
@@ -54,6 +57,8 @@ impl PhienGo {
             raw_to_byte: alloc::vec![0],
             navigable: alloc::vec![0],
             ban_chup_hien_tai: BanChupSoan::rong(),
+            #[cfg(feature = "trace")]
+            trace: alloc::vec::Vec::new(),
         }
     }
 
@@ -61,6 +66,16 @@ impl PhienGo {
     #[must_use]
     pub fn ban_chup(&self) -> &BanChupSoan {
         &self.ban_chup_hien_tai
+    }
+
+    /// Trả trace bước quyết định cho phiên hiện tại.
+    ///
+    /// Chỉ available khi feature `trace` bật. Mỗi phần tử mô tả quyết định
+    /// raw/Telex cho một đoạn raw, kèm bằng chứng và chuỗi vào/ra.
+    #[cfg(feature = "trace")]
+    #[must_use]
+    pub fn trace(&self) -> &[crate::trace::TraceStep] {
+        &self.trace
     }
 
     /// Trả `true` nếu phiên đang rỗng.
@@ -213,6 +228,10 @@ impl PhienGo {
         let noi_dung_goc: String = self.lich_su.iter().map(|t| t.ky_tu).collect();
         self.raw_to_byte = ket_qua.raw_to_byte;
         self.navigable = ket_qua.navigable;
+        #[cfg(feature = "trace")]
+        {
+            self.trace = ket_qua.trace;
+        }
         self.ban_chup_hien_tai =
             BanChupSoan::dung(ket_qua.noi_dung, noi_dung_goc, byte, ket_qua.loai_noi_dung);
     }

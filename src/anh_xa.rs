@@ -39,6 +39,9 @@ pub(crate) struct KetQuaRender {
     pub(crate) navigable: Vec<usize>,
     /// Loại nội dung.
     pub(crate) loai_noi_dung: LoaiNoiDung,
+    /// Trace bước quyết định (chỉ khi feature `trace`).
+    #[cfg(feature = "trace")]
+    pub(crate) trace: alloc::vec::Vec<crate::trace::TraceStep>,
 }
 
 /// Kết quả render một đoạn.
@@ -66,6 +69,8 @@ pub(crate) fn xay_lai(
     let mut raw_to_byte = vec![0usize; thao_tac.len() + 1];
     let mut co_bien_doi = false;
     let mut co_am_tiet = false;
+    #[cfg(feature = "trace")]
+    let mut trace_steps: alloc::vec::Vec<crate::trace::TraceStep> = alloc::vec::Vec::new();
 
     for (vi_tri, doan) in cac_doan.iter().enumerate() {
         let slice = &thao_tac[doan.bat_dau..doan.ket_thuc];
@@ -78,6 +83,27 @@ pub(crate) fn xay_lai(
             chinh_sach,
             nhan_dien[vi_tri].bat_buoc_raw,
         );
+        #[cfg(feature = "trace")]
+        {
+            use crate::trace::TraceKetQua;
+            let chuoi_raw: String = slice.iter().map(|t| t.ky_tu).collect();
+            let ket_qua = if matches!(
+                r.loai,
+                LoaiNoiDung::BienDoiTelex | LoaiNoiDung::AmTietTiengViet
+            ) {
+                TraceKetQua::Telex
+            } else {
+                TraceKetQua::NguyenBan
+            };
+            trace_steps.push(crate::trace::TraceStep {
+                doan_bat_dau: doan.bat_dau,
+                doan_ket_thuc: doan.ket_thuc,
+                bang_chung: nhan_dien[vi_tri].bang_chung,
+                ket_qua,
+                chuoi_raw,
+                chuoi_ra: r.chuoi.clone(),
+            });
+        }
         let bat_dau_byte = noi_dung.len();
         // Điền raw_to_byte toàn cục từ map nội bộ.
         for (i, &local_byte) in r.map.iter().enumerate() {
@@ -107,6 +133,8 @@ pub(crate) fn xay_lai(
         raw_to_byte,
         navigable,
         loai_noi_dung,
+        #[cfg(feature = "trace")]
+        trace: trace_steps,
     }
 }
 
