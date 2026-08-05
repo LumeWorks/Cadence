@@ -85,3 +85,12 @@ Escape luôn giữ kết quả Telex (ý định người dùng), không fallbac
 
 * Phase 3 có thể thêm bảng vần đầy đủ để kiểm tra `MucHopLe::HoanChinh`.
 * Phase 3 có thể thêm biến đổi VNI (kiểu số).
+
+## Ghi chú triển khai
+
+* `tim_nguyen_am_chinh` trong `telex.rs` triển khai quy tắc nguyên âm chính
+  với 3 trường hợp: bán âm cuối (`i`/`u`/`o`), on-glide (`o`+`a`/`e`), và
+  mặc định (nguyên âm cuối).
+* Bán âm cuối mở rộng `o` (không chỉ `i`/`u`) để xử lý `ao`, `eo`, `ưo`.
+* `segment_start` theo dõi ranh giới `them_nguyen_ban` để chặn tone xuyên.
+* 299 tests xác minh hành vi (xem `tests/telex_*.rs`).
