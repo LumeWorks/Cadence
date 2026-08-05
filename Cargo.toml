@@ -17,6 +17,15 @@ path = "src/lib.rs"
 [features]
 default = ["std"]
 std = []
+trace = []
+serde = ["dep:serde"]
+
+[dependencies]
+unicode-segmentation = { version = "1", default-features = false }
+serde = { version = "1", default-features = false, optional = true, features = ["alloc"] }
+
+[dev-dependencies]
+proptest = "1"
 
 [lints.rust]
 unsafe_code = "forbid"

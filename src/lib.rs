@@ -16,6 +16,19 @@
 
 extern crate alloc;
 
+pub mod ban_chup;
+pub mod bo_go;
 pub mod cau_hinh;
+pub mod ket_qua;
+pub mod loai_noi_dung;
+pub mod phien_go;
+pub(crate) mod thao_tac;
+pub mod vi_tri;
 
+pub use ban_chup::BanChupSoan;
+pub use bo_go::BoGo;
 pub use cau_hinh::{CauHinh, LoiCauHinh};
+pub use ket_qua::KetQuaXuLy;
+pub use loai_noi_dung::LoaiNoiDung;
+pub use phien_go::PhienGo;
+pub use vi_tri::ViTriVanBan;
