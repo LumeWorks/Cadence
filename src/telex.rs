@@ -138,8 +138,10 @@ fn tim_nguyen_am_chinh(
     let cuoi = *cac_nguyen_am.last().unwrap_or(&0);
     if cac_nguyen_am.len() >= 2 {
         if let NoiDungDonVi::Chu(chu) = &don_vi[cuoi].noi_dung {
-            // Bán âm cuối: tone trên nguyên âm trước.
-            if matches!(chu.chu_goc, ChuGoc::I | ChuGoc::U) && matches!(chu.dau_chu, DauChu::Khong)
+            // Bán âm cuối: `i`, `u`, `o` (không dấu hình chữ) → tone trên
+            // nguyên âm trước. `o` base là off-glide trong `ao`, `eo`, `ưo`.
+            if matches!(chu.chu_goc, ChuGoc::I | ChuGoc::U | ChuGoc::O)
+                && matches!(chu.dau_chu, DauChu::Khong)
             {
                 return Some(cac_nguyen_am[cac_nguyen_am.len() - 2]);
             }
