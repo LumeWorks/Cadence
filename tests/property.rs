@@ -284,4 +284,129 @@ proptest! {
             prop_assert!(bc.noi_dung().is_char_boundary(bc.con_tro().chi_so_byte()));
         }
     }
+
+    /// Bất biến: navigation không thay đổi nội dung (raw và rendered).
+    #[test]
+    fn navigation_khong_doi_noi_dung(cac_hanh_dong in prop::collection::vec(hanh_dong(), 0..32)) {
+        let mut phien = tao_phien(4096);
+        ap_dung_day(&mut phien, &cac_hanh_dong);
+        let noi_dung = phien.ban_chup().noi_dung().to_string();
+        let noi_dung_goc = phien.ban_chup().noi_dung_goc().to_string();
+        // Navigation không thay đổi nội dung.
+        for _ in 0..5 {
+            phien.di_trai();
+        }
+        prop_assert_eq!(phien.ban_chup().noi_dung(), &noi_dung[..]);
+        prop_assert_eq!(phien.ban_chup().noi_dung_goc(), &noi_dung_goc[..]);
+        for _ in 0..5 {
+            phien.di_phai();
+        }
+        prop_assert_eq!(phien.ban_chup().noi_dung(), &noi_dung[..]);
+        prop_assert_eq!(phien.ban_chup().noi_dung_goc(), &noi_dung_goc[..]);
+        phien.ve_dau();
+        prop_assert_eq!(phien.ban_chup().noi_dung(), &noi_dung[..]);
+        prop_assert_eq!(phien.ban_chup().noi_dung_goc(), &noi_dung_goc[..]);
+        phien.ve_cuoi();
+        prop_assert_eq!(phien.ban_chup().noi_dung(), &noi_dung[..]);
+        prop_assert_eq!(phien.ban_chup().noi_dung_goc(), &noi_dung_goc[..]);
+    }
+
+    /// Bất biến: cursor round-trip — ve_dau rồi ve_cuoi về cuối; ve_cuoi rồi ve_dau về đầu.
+    #[test]
+    fn cursor_round_trip(cac_hanh_dong in prop::collection::vec(hanh_dong(), 0..32)) {
+        let mut phien = tao_phien(4096);
+        ap_dung_day(&mut phien, &cac_hanh_dong);
+        phien.ve_cuoi();
+        let g_cuoi = phien.ban_chup().con_tro().chi_so_grapheme();
+        phien.ve_dau();
+        let g_dau = phien.ban_chup().con_tro().chi_so_grapheme();
+        prop_assert_eq!(g_dau, 0);
+        // Ve_cuoi từ đầu → về cuối.
+        phien.ve_cuoi();
+        prop_assert_eq!(phien.ban_chup().con_tro().chi_so_grapheme(), g_cuoi);
+        // Ve_dau từ cuối → về đầu.
+        phien.ve_dau();
+        prop_assert_eq!(phien.ban_chup().con_tro().chi_so_grapheme(), 0);
+    }
+
+    /// Bất biến: di_trai ở đầu luôn KhongDoi; di_phai ở cuối luôn KhongDoi.
+    #[test]
+    fn boundary_navigation_khong_doi(cac_hanh_dong in prop::collection::vec(hanh_dong(), 0..32)) {
+        let mut phien = tao_phien(4096);
+        ap_dung_day(&mut phien, &cac_hanh_dong);
+        phien.ve_dau();
+        prop_assert!(matches!(phien.di_trai(), KetQuaXuLy::KhongDoi));
+        phien.ve_cuoi();
+        prop_assert!(matches!(phien.di_phai(), KetQuaXuLy::KhongDoi));
+    }
+
+    /// Bất biến: loai_noi_dung không đổi dưới navigation (content không đổi).
+    #[test]
+    fn loai_noi_dung_on_dinh_navigation(cac_hanh_dong in prop::collection::vec(hanh_dong(), 0..32)) {
+        let mut phien = tao_phien(4096);
+        ap_dung_day(&mut phien, &cac_hanh_dong);
+        let loai = phien.ban_chup().loai_noi_dung();
+        phien.ve_dau();
+        prop_assert_eq!(phien.ban_chup().loai_noi_dung(), loai);
+        phien.ve_cuoi();
+        prop_assert_eq!(phien.ban_chup().loai_noi_dung(), loai);
+        for _ in 0..3 {
+            phien.di_trai();
+            prop_assert_eq!(phien.ban_chup().loai_noi_dung(), loai);
+        }
+    }
+
+    /// Bất biến: chap_nhan trả nội dung đúng bằng ban_chup().noi_dung().
+    #[test]
+    fn chap_nhan_tra_noi_dung_dung(cac_hanh_dong in prop::collection::vec(hanh_dong(), 1..32)) {
+        let mut phien = tao_phien(64);
+        phien.them_ky_tu('a');
+        ap_dung_day(&mut phien, &cac_hanh_dong);
+        let noi_dung = phien.ban_chup().noi_dung().to_string();
+        let kq = phien.chap_nhan();
+        match kq {
+            KetQuaXuLy::ChapNhan { noi_dung: n } => {
+                prop_assert_eq!(n, noi_dung);
+            }
+            KetQuaXuLy::KhongDoi => {
+                prop_assert!(noi_dung.is_empty());
+            }
+            KetQuaXuLy::CapNhat => panic!("chap_nhan khong tra CapNhat"),
+        }
+    }
+
+    /// Bất biến: hai phiên cùng actions → cùng loai_noi_dung (determinism).
+    #[test]
+    fn hai_phien_cung_loai_noi_dung(cac_hanh_dong in prop::collection::vec(hanh_dong(), 0..32)) {
+        let mut phien_a = tao_phien(64);
+        let mut phien_b = tao_phien(64);
+        ap_dung_day(&mut phien_a, &cac_hanh_dong);
+        ap_dung_day(&mut phien_b, &cac_hanh_dong);
+        prop_assert_eq!(
+            phien_a.ban_chup().loai_noi_dung(),
+            phien_b.ban_chup().loai_noi_dung()
+        );
+    }
+
+    /// Bất biến: xoa_lui ở đầu luôn KhongDoi bất kể nội dung.
+    #[test]
+    fn xoa_lui_o_dau_khong_doi(cac_hanh_dong in prop::collection::vec(hanh_dong(), 0..32)) {
+        let mut phien = tao_phien(4096);
+        ap_dung_day(&mut phien, &cac_hanh_dong);
+        phien.ve_dau();
+        let noi_dung = phien.ban_chup().noi_dung().to_string();
+        prop_assert!(matches!(phien.xoa_lui(), KetQuaXuLy::KhongDoi));
+        prop_assert_eq!(phien.ban_chup().noi_dung(), &noi_dung[..]);
+    }
+
+    /// Bất biến: xoa_phia_truoc ở cuối luôn KhongDoi bất kể nội dung.
+    #[test]
+    fn xoa_phia_truoc_o_cuoi_khong_doi(cac_hanh_dong in prop::collection::vec(hanh_dong(), 0..32)) {
+        let mut phien = tao_phien(4096);
+        ap_dung_day(&mut phien, &cac_hanh_dong);
+        phien.ve_cuoi();
+        let noi_dung = phien.ban_chup().noi_dung().to_string();
+        prop_assert!(matches!(phien.xoa_phia_truoc(), KetQuaXuLy::KhongDoi));
+        prop_assert_eq!(phien.ban_chup().noi_dung(), &noi_dung[..]);
+    }
 }

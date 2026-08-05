@@ -362,6 +362,10 @@ pub(crate) fn di_trai_raw(r: usize, navigable: &[usize]) -> usize {
 }
 
 /// Di chuyển con trỏ raw về phải một grapheme (raw position navigable sau).
+///
+/// Khi `r` nằm ở hoặc vượt quá navigable cuối (vd `ve_cuoi` đặt `con_tro =
+/// lich_su.len()`), trả `r` gốc (không snap) để caller thấy `moi == r` →
+/// `KhongDoi`. Nếu trả `r_snapped` thì `moi != r` → `CapNhat` sai.
 pub(crate) fn di_phai_raw(r: usize, navigable: &[usize]) -> usize {
     let r_snapped = snap_raw(r, navigable);
     match navigable.binary_search(&r_snapped) {
@@ -369,10 +373,10 @@ pub(crate) fn di_phai_raw(r: usize, navigable: &[usize]) -> usize {
             if pos + 1 < navigable.len() {
                 navigable[pos + 1]
             } else {
-                r_snapped
+                r
             }
         }
-        Err(pos) => navigable.get(pos).copied().unwrap_or(r_snapped),
+        Err(_) => r,
     }
 }
 

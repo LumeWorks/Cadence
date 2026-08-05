@@ -127,3 +127,60 @@ fn reg_khoi_phuc_nguyen_ban_la_no_op() {
     assert!(matches!(ket_qua, KetQuaXuLy::KhongDoi));
     assert_eq!(phien.ban_chup().noi_dung(), truoc);
 }
+
+/// Regression: `di_phai` ở cuối lịch sử (raw position = `lich_su.len()`)
+/// khi raw cuối là tone key (không navigable) phải trả `KhongDoi`, không
+/// `CapNhat`. Lỗi cũ: `di_phai_raw` snap về navigable gần nhất rồi trả về
+/// snapped value ≠ r, khiến caller thấy `moi != r` → `CapNhat` sai.
+///
+/// Repro: [Them('o'), XoaPhiaTruoc, Them('e'), DiPhai, Them('😀'), DiTrai,
+/// Them('s'), XoaPhiaTruoc] → lich_su = [o, e, s], content = "óe",
+/// ve_cuoi → con_tro = 3, di_phai phải KhongDoi.
+#[test]
+fn reg_di_phai_o_cuoi_khong_doi_khi_raw_cuoi_la_tone() {
+    let mut phien = tao_phien();
+    phien.them_ky_tu('o');
+    phien.xoa_phia_truoc();
+    phien.them_ky_tu('e');
+    phien.di_phai();
+    phien.them_ky_tu('\u{1F600}');
+    phien.di_trai();
+    phien.them_ky_tu('s');
+    phien.xoa_phia_truoc();
+    // lich_su = [o, e, s], content = "óe" (2 graphemes).
+    assert_eq!(phien.ban_chup().noi_dung(), "óe");
+    phien.ve_cuoi();
+    let kq = phien.di_phai();
+    assert!(
+        matches!(kq, KetQuaXuLy::KhongDoi),
+        "di_phai o cuoi phai KhongDoi, duoc {kq:?}"
+    );
+}
+
+/// Regression: tương tự nhưng chỉ với tone key thuần. `as` → `á`,
+/// ve_cuoi → con_tro = 2 (raw `s` không navigable), di_phai phải KhongDoi.
+#[test]
+fn reg_di_phai_o_cuoi_sau_tone_key() {
+    let mut phien = tao_phien();
+    for c in "as".chars() {
+        phien.them_ky_tu(c);
+    }
+    assert_eq!(phien.ban_chup().noi_dung(), "á");
+    phien.ve_cuoi();
+    let kq = phien.di_phai();
+    assert!(matches!(kq, KetQuaXuLy::KhongDoi));
+}
+
+/// Regression: di_trai ở đầu khi raw đầu là tone key hoặc shape modifier
+/// cũng phải KhongDoi (đối xứng với di_phai ở cuối).
+#[test]
+fn reg_di_trai_o_dau_khong_doi_sau_raw_khong_navigable() {
+    let mut phien = tao_phien();
+    for c in "aws".chars() {
+        phien.them_ky_tu(c);
+    }
+    assert_eq!(phien.ban_chup().noi_dung(), "ắ");
+    phien.ve_dau();
+    let kq = phien.di_trai();
+    assert!(matches!(kq, KetQuaXuLy::KhongDoi));
+}
