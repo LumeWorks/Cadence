@@ -111,6 +111,27 @@ impl PhienGo {
         KetQuaXuLy::CapNhat
     }
 
+    /// Di chuyển con trỏ về đầu lịch sử. Trả `KhongDoi` nếu đang ở đầu.
+    pub fn ve_dau(&mut self) -> KetQuaXuLy {
+        if self.con_tro == 0 {
+            return KetQuaXuLy::KhongDoi;
+        }
+        self.con_tro = 0;
+        self.xay_lai_ban_chup();
+        KetQuaXuLy::CapNhat
+    }
+
+    /// Di chuyển con trỏ về cuối lịch sử. Trả `KhongDoi` nếu đang ở cuối.
+    pub fn ve_cuoi(&mut self) -> KetQuaXuLy {
+        let cuoi = self.lich_su.len();
+        if self.con_tro == cuoi {
+            return KetQuaXuLy::KhongDoi;
+        }
+        self.con_tro = cuoi;
+        self.xay_lai_ban_chup();
+        KetQuaXuLy::CapNhat
+    }
+
     /// Chèn một thao tác tại con trỏ, cập nhật con trỏ và dựng lại snapshot.
     fn chen_thao_tac(&mut self, thao_tac: ThaoTacNhap) -> KetQuaXuLy {
         if self.lich_su.len() >= self.gioi_han_thao_tac {
