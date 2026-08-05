@@ -19,6 +19,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 /// Bằng chứng lựa chọn cho một đoạn. Dùng cho trace và quyết định.
+#[cfg_attr(not(feature = "trace"), allow(dead_code))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BangChungLuaChon {
     /// Âm tiết tiếng Việt hoàn chỉnh (onset + nucleus + coda hợp lệ).
