@@ -23,6 +23,7 @@ serde = ["dep:serde"]
 [dependencies]
 unicode-segmentation = { version = "1", default-features = false }
 serde = { version = "1", default-features = false, optional = true, features = ["alloc", "derive"] }
+unicode-normalization = { version = "0.1.25", default-features = false }
 
 [dev-dependencies]
 proptest = "1"
