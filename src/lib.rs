@@ -15,3 +15,7 @@
 #![warn(missing_docs)]
 
 extern crate alloc;
+
+pub mod cau_hinh;
+
+pub use cau_hinh::{CauHinh, LoiCauHinh};

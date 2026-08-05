@@ -24,11 +24,11 @@ missing_docs = "warn"
 unused_must_use = "deny"
 
 [lints.clippy]
-correctness = "deny"
-suspicious = "deny"
-perf = "warn"
-style = "warn"
-complexity = "warn"
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+perf = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+complexity = { level = "warn", priority = -1 }
 unwrap_used = "deny"
 wildcard_imports = "deny"
 enum_glob_use = "deny"
