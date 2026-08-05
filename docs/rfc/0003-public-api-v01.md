@@ -1,6 +1,9 @@
 # RFC 0003 - Public API v0.1
 
-Trạng thái: Chấp thuận - Phase 1.
+Trạng thái: Chấp thuận - Phase 4 (ổn định cho phát hành 0.1.0).
+
+Xem [`docs/api/public-api-0.1.0.md`](../api/public-api-0.1.0.md) cho inventory
+đầy đủ và [`docs/API_STABILITY.md`](../API_STABILITY.md) cho chính sách compat.
 
 ## Vấn đề
 
