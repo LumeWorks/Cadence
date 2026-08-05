@@ -1,6 +1,6 @@
 # RFC 0006 — Telex engine: hình chữ và dấu thanh
 
-Trạng thái: Chấp thuận — Phase 2.
+Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
 
 ## Vấn đề
 

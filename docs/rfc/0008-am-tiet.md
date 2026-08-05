@@ -1,6 +1,6 @@
 # RFC 0008 — Phân tích âm tiết tiếng Việt
 
-Trạng thái: Chấp thuận — Phase 2.
+Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
 
 ## Vấn đề
 

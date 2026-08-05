@@ -1,6 +1,6 @@
 # RFC 0007 — Unicode NFC/NFD output
 
-Trạng thái: Chấp thuận — Phase 2.
+Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
 
 ## Vấn đề
 

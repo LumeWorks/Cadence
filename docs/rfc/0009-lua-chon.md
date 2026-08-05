@@ -1,6 +1,6 @@
 # RFC 0009 — Lựa chọn raw vs Telex
 
-Trạng thái: Chấp thuận — Phase 2.
+Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
 
 ## Vấn đề
 

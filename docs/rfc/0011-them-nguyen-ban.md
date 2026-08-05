@@ -1,6 +1,6 @@
 # RFC 0011 — `them_nguyen_ban` bypass Telex
 
-Trạng thái: Chấp thuận — Phase 2.
+Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
 
 ## Vấn đề
 

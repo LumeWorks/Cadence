@@ -1,6 +1,6 @@
 # RFC 0012 — Mô hình chữ viết (domain model)
 
-Trạng thái: Chấp thuận — Phase 2.
+Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
 
 ## Vấn đề
 

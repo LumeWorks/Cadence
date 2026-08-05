@@ -1,6 +1,6 @@
 # RFC 0010 — Ánh xạ con trỏ raw ↔ byte, grapheme
 
-Trạng thái: Chấp thuận — Phase 2.
+Trạng thái: Chấp thuận — Phase 2 (đã triển khai).
 
 ## Vấn đề
 
