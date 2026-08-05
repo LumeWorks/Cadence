@@ -27,6 +27,8 @@ cargo test --no-default-features
 cargo check --release
 cargo check --release --no-default-features
 cargo doc --all-features --no-deps
+rustup run 1.85 cargo check --all-features
+rustup run 1.85 cargo check --no-default-features
 ```
 
 Benchmark (không phải gate cứng):
