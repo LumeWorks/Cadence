@@ -17,6 +17,7 @@ pub(crate) mod chu_viet;
 pub mod ket_qua;
 pub mod loai_noi_dung;
 pub(crate) mod lua_chon;
+pub(crate) mod phan_doan;
 pub mod phien_go;
 pub(crate) mod render;
 pub(crate) mod telex;

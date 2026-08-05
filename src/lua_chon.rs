@@ -3,11 +3,17 @@
 
 //! Lựa chọn giữa raw và biến đổi Telex.
 //!
-//! Quy tắc Phase 2:
-//! 1. Nếu kết quả Telex có shape transform (â, ă, ê, ô, ơ, ư, đ) → giữ Telex.
-//! 2. Nếu chỉ có tone transform, parse Telex output: nếu không hợp lệ → raw.
-//! 3. Escape luôn được giữ (ý định người dùng).
-//! 4. `them_nguyen_ban` luôn giữ raw (đảm bảo ở tầng telex).
+//! Quy tắc Phase 3 (mỗi đoạn chữ độc lập):
+//! 1. Shape transform + onset không hợp lệ → raw (`foo`→`foo`, `f` không là
+//!    onset Việt). Shape + onset hợp lệ → Telex (`ddm`→`đm`, `aaq`→`âq`).
+//! 2. Shape transform (onset hợp lệ) → Telex (ngay cả khi chưa phải âm tiết).
+//! 3. Escape hình chữ → Telex (`ddd`→`dd`); escape dấu thanh → Telex (`ass`→`as`).
+//! 4. Onset raw không hợp lệ (`cl` trong `class`) → raw.
+//! 5. Chỉ tone + âm tiết không hợp lệ → raw (`async`→`async`).
+//! 6. `them_nguyen_ban` chặn Telex ở tầng phân đoạn (đoạn `NguyenBan` luôn raw).
+//!
+//! Teencode lặp (3+ chữ cái hình chữ doubled-base có chữ khác trước, như
+//! `brooo`) được bảo toàn raw TRƯỚC khi gọi `lua_chon` (xem `phan_doan`).
 
 use crate::am_tiet;
 use crate::chu_viet::{DauChu, DauThanh};
@@ -62,27 +68,48 @@ pub(crate) fn lua_chon(
         NoiDungDonVi::Chu(chu) => !matches!(chu.dau_thanh, DauThanh::Khong),
         NoiDungDonVi::Chuong(_) => false,
     });
+    // Đếm số đơn vị mang dấu thanh. Tiếng Việt có đúng một dấu thanh mỗi âm
+    // tiết; hai dấu trở lên (`úẻ` từ `user`) không thể là âm tiết hợp lệ.
+    let so_dau_thanh = don_vi
+        .iter()
+        .filter(|u| match &u.noi_dung {
+            NoiDungDonVi::Chu(chu) => !matches!(chu.dau_thanh, DauThanh::Khong),
+            NoiDungDonVi::Chuong(_) => false,
+        })
+        .count();
 
-    // Rule 1: có shape transform → giữ Telex (ngay cả khi chưa phải âm tiết).
+    let output = render_de_tu_don_vi(don_vi);
+
+    // Rule 0: từ hai dấu thanh trở lên → raw (không phải âm tiết Việt).
+    if so_dau_thanh >= 2 {
+        return KetQuaLuaChon::NguyenBan;
+    }
+
+    // Rule 1: shape transform + onset không hợp lệ → raw.
+    // Onset hợp lệ = nguyên âm đầu HOẶC phụ âm onset Việt (`b`,`c`,`d`,`đ`,...).
+    // `foo`→`fô`: `f` không là onset Việt → raw. `ddm`→`đm`: `đ` là onset → Telex.
+    if co_shape && !am_tiet::bat_dau_onset_hop_le(&output) {
+        return KetQuaLuaChon::NguyenBan;
+    }
+
+    // Rule 2: shape transform (onset hợp lệ) → Telex.
     if co_shape {
         return KetQuaLuaChon::Telex;
     }
 
-    let output = render_de_tu_don_vi(don_vi);
-
-    // Rule 2: onset+vowel không hợp lệ (như `cl` trong `clas`) → raw.
+    // Rule 3: onset raw không hợp lệ (`cl` trong `class`) → raw.
     // Escape hình chữ (dd→đ rồi undo) vẫn giữ vì `dd` là cặp Telex hợp lệ.
     if !co_escape_hinh_chu && !am_tiet::raw_co_onset_hop_le(&output) {
         return KetQuaLuaChon::NguyenBan;
     }
 
-    // Rule 3: escape luôn giữ (ý định người dùng thoát Telex).
+    // Rule 4: escape luôn giữ (ý định người dùng thoát Telex).
     if co_escape {
         return KetQuaLuaChon::Telex;
     }
 
-    // Rule 4: chỉ có tone transform → parse âm tiết đầy đủ.
-    // Bỏ qua khi có `them_nguyen_ban` vì các đoạn độc lập, không parse chung.
+    // Rule 5: chỉ có tone transform → parse âm tiết đầy đủ.
+    // Bỏ qua khi có `them_nguyen_ban` vì các đoạn độc lập.
     if co_tone
         && !co_nguyen_ban
         && am_tiet::phan_tich_am_tiet(&output) == am_tiet::MucHopLe::KhongHopLe

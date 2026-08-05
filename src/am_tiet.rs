@@ -98,7 +98,16 @@ pub(crate) fn phan_tich_am_tiet(s: &str) -> MucHopLe {
     }
 
     // Phase 2: mọi vần chỉ chứa nguyên âm là CoTheTiepTuc.
-    // Kiểm tra chi tiết hơn (bảng vần đầy đủ) dành cho Phase 3.
+    // Phase 3: nucleus 2+ nguyên âm mà không có glide {i,u,ư,y,o} thì không
+    // thể là vần Việt (vd `ae` trong `CASE`, `uo` thì `u` là glide). Nguyên
+    // âm đầy (a, ă, â, e, ê, ô, ơ) không bao giờ đứng làm glide nên tổ hợp
+    // hai nguyên âm đầy không hợp lệ.
+    if van.chars().count() >= 2
+        && !van.chars().any(|c| matches!(c, 'i' | 'u' | 'ư' | 'y' | 'o'))
+    {
+        return MucHopLe::KhongHopLe;
+    }
+
     MucHopLe::CoTheTiepTuc
 }
 

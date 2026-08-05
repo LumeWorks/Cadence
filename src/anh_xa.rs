@@ -3,10 +3,15 @@
 
 //! Pipeline render + ánh xạ con trỏ từ raw thao tác sang output grapheme.
 //!
-//! Sau khi Telex biến đổi raw history thành `DonViRender`, module này:
+//! Phase 3: lịch sử raw được phân đoạn theo loại ký tự (`phan_doan`). Mỗi đoạn
+//! chữ (Chu) chạy Telex độc lập; mọi đoạn khác render nguyên bản. Việc này
+//! ngăn phím dấu thanh/hình chữ xuyên qua ranh giới từ, cho phép code, URL,
+//! command và tiếng Việt trộn trong cùng phiên.
 //!
 //! ```text
-//! don_vi → render chuỗi output → raw_to_byte → navigable → con trỏ công khai
+//! lịch sử → phan_doan → Vec<Doan>
+//!   → mỗi đoạn: (Telex | raw) → substring + local raw_to_byte
+//!   → ghép → output toàn cục + raw_to_byte toàn cục → navigable → snapshot
 //! ```
 
 use alloc::string::String;
@@ -18,8 +23,9 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::cau_hinh::{DangUnicode, KieuTelex, QuyTacDatDau};
 use crate::loai_noi_dung::LoaiNoiDung;
 use crate::lua_chon;
+use crate::phan_doan::{self, Doan, LoaiDoan};
 use crate::render;
-use crate::telex::{DonViRender, NoiDungDonVi};
+use crate::telex::{self, DonViRender, NoiDungDonVi};
 use crate::thao_tac::ThaoTacNhap;
 
 /// Kết quả của một lần dựng lại snapshot.
@@ -34,6 +40,16 @@ pub(crate) struct KetQuaRender {
     pub(crate) loai_noi_dung: LoaiNoiDung,
 }
 
+/// Kết quả render một đoạn.
+struct RenderDoan {
+    /// Chuỗi output của đoạn.
+    chuoi: String,
+    /// Ánh xạ raw position nội bộ (0..=len) → byte offset trong `chuoi`.
+    map: Vec<usize>,
+    /// Loại nội dung của đoạn.
+    loai: LoaiNoiDung,
+}
+
 /// Dựng lại toàn bộ snapshot từ lịch sử thao tác.
 pub(crate) fn xay_lai(
     thao_tac: &[ThaoTacNhap],
@@ -41,74 +57,157 @@ pub(crate) fn xay_lai(
     kieu_telex: KieuTelex,
     quy_tac: QuyTacDatDau,
 ) -> KetQuaRender {
-    let ket_qua_telex = crate::telex::xu_ly_doan_chu(thao_tac, kieu_telex, quy_tac);
-    let don_vi = ket_qua_telex.don_vi;
-    let co_escape = ket_qua_telex.co_escape;
-    let co_escape_hinh_chu = ket_qua_telex.co_escape_hinh_chu;
-    let noi_dung_goc: String = thao_tac.iter().map(|t| t.ky_tu).collect();
-    let co_nguyen_ban = thao_tac
-        .iter()
-        .any(|t| t.cach_nhap == crate::thao_tac::CachNhap::NguyenBan);
+    let cac_doan = phan_doan::phan_doan(thao_tac, kieu_telex);
 
-    // Lựa chọn raw vs Telex cho toàn đoạn.
-    let lua_chon = lua_chon::lua_chon(
-        &don_vi,
-        &noi_dung_goc,
-        co_escape,
-        co_escape_hinh_chu,
-        co_nguyen_ban,
-    );
-    let (noi_dung, raw_to_byte): (String, Vec<usize>) = match lua_chon {
-        lua_chon::KetQuaLuaChon::Telex => {
-            let mut s = String::new();
-            let mut byte_len = Vec::with_capacity(don_vi.len());
-            for u in &don_vi {
-                let r = render_don_vi(u, dang);
-                byte_len.push(r.len());
-                s.push_str(&r);
-            }
-            let n = thao_tac.len();
-            (s, tinh_raw_to_byte(&don_vi, &byte_len, n))
+    let mut noi_dung = String::new();
+    let mut raw_to_byte = vec![0usize; thao_tac.len() + 1];
+    let mut co_bien_doi = false;
+    let mut co_am_tiet = false;
+
+    for doan in &cac_doan {
+        let slice = &thao_tac[doan.bat_dau..doan.ket_thuc];
+        let r = render_doan(doan, slice, dang, kieu_telex, quy_tac);
+        let bat_dau_byte = noi_dung.len();
+        // Điền raw_to_byte toàn cục từ map nội bộ.
+        for (i, &local_byte) in r.map.iter().enumerate() {
+            raw_to_byte[doan.bat_dau + i] = bat_dau_byte + local_byte;
         }
-        lua_chon::KetQuaLuaChon::NguyenBan => {
-            // Render raw từng ký tự (chỉ normalize dạng Unicode). Mỗi raw
-            // position maps trực tiếp: r → byte offset của ký tự r.
-            let mut s = String::new();
-            let mut map = vec![0usize; thao_tac.len() + 1];
-            for (i, t) in thao_tac.iter().enumerate() {
-                map[i] = s.len();
-                let chu = match render::phan_tich_ky_tu(t.ky_tu) {
-                    Some(c) => c,
-                    None => crate::chu_viet::ChuCaiViet::thuong(t.ky_tu),
-                };
-                s.push_str(&render::render_chu(&chu, dang));
-            }
-            map[thao_tac.len()] = s.len();
-            (s, map)
+        noi_dung.push_str(&r.chuoi);
+        match r.loai {
+            LoaiNoiDung::BienDoiTelex => co_bien_doi = true,
+            LoaiNoiDung::AmTietTiengViet => co_am_tiet = true,
+            _ => {}
         }
-    };
-    let navigable = tinh_navigable(&noi_dung, &raw_to_byte);
-    let loai_noi_dung = loai_noi_dung_cua(&noi_dung, &noi_dung_goc);
-    // Nâng cấp lên `AmTietTiengViet` nếu output là âm tiết hợp lệ.
-    let loai_noi_dung = if loai_noi_dung == LoaiNoiDung::BienDoiTelex {
-        let base = lua_chon::render_de_tu_don_vi(&don_vi);
-        if matches!(
-            crate::am_tiet::phan_tich_am_tiet(&base),
-            crate::am_tiet::MucHopLe::CoTheTiepTuc
-        ) {
-            LoaiNoiDung::AmTietTiengViet
-        } else {
-            loai_noi_dung
-        }
+    }
+
+    let loai_noi_dung = if thao_tac.is_empty() {
+        LoaiNoiDung::Trong
+    } else if co_bien_doi {
+        LoaiNoiDung::BienDoiTelex
+    } else if co_am_tiet {
+        LoaiNoiDung::AmTietTiengViet
     } else {
-        loai_noi_dung
+        LoaiNoiDung::NguyenBan
     };
+
+    let navigable = tinh_navigable(&noi_dung, &raw_to_byte);
     KetQuaRender {
         noi_dung,
         raw_to_byte,
         navigable,
         loai_noi_dung,
     }
+}
+
+/// Render một đoạn theo loại. Đoạn `Chu` chạy Telex (trừ teencode lặp); mọi
+/// đoạn khác render nguyên bản as-is.
+fn render_doan(
+    doan: &Doan,
+    slice: &[ThaoTacNhap],
+    dang: DangUnicode,
+    kieu_telex: KieuTelex,
+    quy_tac: QuyTacDatDau,
+) -> RenderDoan {
+    match doan.loai {
+        LoaiDoan::Chu => render_chu(slice, dang, kieu_telex, quy_tac),
+        // NguyenBan/non-Chu: as-is (giữ nguyên, không normalize). Các ký tự
+        // này (ASCII, emoji, combining mark) không thay đổi khi normalize.
+        _ => render_nguyen_ban(slice),
+    }
+}
+
+/// Render một đoạn chữ qua Telex, chọn raw/Telex theo `lua_chon`.
+///
+/// Teencode lặp (3+ chữ cái hình chữ doubled-base có chữ khác trước) được
+/// bảo toàn raw trước khi chạy Telex. Khi fallback raw, dùng `render_chu`
+/// (normalize) để NFC/NFD canonical equivalent giữ đúng.
+fn render_chu(
+    slice: &[ThaoTacNhap],
+    dang: DangUnicode,
+    kieu_telex: KieuTelex,
+    quy_tac: QuyTacDatDau,
+) -> RenderDoan {
+    if phan_doan::la_teencode_lap(slice) {
+        return render_raw_chu(slice, dang);
+    }
+    let ket_qua_telex = telex::xu_ly_doan_chu(slice, kieu_telex, quy_tac);
+    let don_vi = &ket_qua_telex.don_vi;
+    let lua_chon = lua_chon::lua_chon(
+        don_vi,
+        "",
+        ket_qua_telex.co_escape,
+        ket_qua_telex.co_escape_hinh_chu,
+        false,
+    );
+    match lua_chon {
+        lua_chon::KetQuaLuaChon::Telex => {
+            let (chuoi, byte_len) = render_don_vi_list(don_vi, dang);
+            let map = tinh_raw_to_byte(don_vi, &byte_len, slice.len());
+            let loai = loai_noi_dung_chu(&chuoi, slice, don_vi);
+            RenderDoan {
+                chuoi,
+                map,
+                loai,
+            }
+        }
+        lua_chon::KetQuaLuaChon::NguyenBan => render_raw_chu(slice, dang),
+    }
+}
+
+/// Render raw một đoạn chữ qua `render_chu` (normalize NFC/NFD). Map 1:1
+/// theo byte, tính byte offset sau mỗi `render_chu` (có thể nhiều byte
+/// trong NFD).
+fn render_raw_chu(slice: &[ThaoTacNhap], dang: DangUnicode) -> RenderDoan {
+    let mut chuoi = String::new();
+    let mut map = Vec::with_capacity(slice.len() + 1);
+    for t in slice {
+        map.push(chuoi.len());
+        let chu = match render::phan_tich_ky_tu(t.ky_tu) {
+            Some(c) => c,
+            None => crate::chu_viet::ChuCaiViet::thuong(t.ky_tu),
+        };
+        chuoi.push_str(&render::render_chu(&chu, dang));
+    }
+    map.push(chuoi.len());
+    let raw: String = slice.iter().map(|t| t.ky_tu).collect();
+    let loai = loai_noi_dung_cua(&chuoi, &raw);
+    RenderDoan {
+        chuoi,
+        map,
+        loai,
+    }
+}
+
+/// Render nguyên bản as-is: mỗi ký tự push không normalize, map 1:1 theo
+/// byte. Dùng cho `them_nguyen_ban` và các đoạn không phải chữ (số, khoảng
+/// trắng, dấu câu, kỹ thuật, emoji).
+fn render_nguyen_ban(slice: &[ThaoTacNhap]) -> RenderDoan {
+    let mut chuoi = String::new();
+    let mut map = Vec::with_capacity(slice.len() + 1);
+    for t in slice {
+        map.push(chuoi.len());
+        chuoi.push(t.ky_tu);
+    }
+    map.push(chuoi.len());
+    let raw: String = slice.iter().map(|t| t.ky_tu).collect();
+    let loai = loai_noi_dung_cua(&chuoi, &raw);
+    RenderDoan {
+        chuoi,
+        map,
+        loai,
+    }
+}
+
+/// Render danh sách đơn vị Telex ra chuỗi, trả kèm byte length mỗi đơn vị.
+fn render_don_vi_list(don_vi: &[DonViRender], dang: DangUnicode) -> (String, Vec<usize>) {
+    let mut s = String::new();
+    let mut byte_len = Vec::with_capacity(don_vi.len());
+    for u in don_vi {
+        let r = render_don_vi(u, dang);
+        byte_len.push(r.len());
+        s.push_str(&r);
+    }
+    (s, byte_len)
 }
 
 /// Render một đơn vị ra chuỗi theo dạng Unicode.
@@ -249,11 +348,31 @@ pub(crate) fn byte_tai(r: usize, raw_to_byte: &[usize]) -> usize {
     raw_to_byte[r.min(raw_to_byte.len() - 1)]
 }
 
+/// Xác định loại nội dung của một đoạn chữ Telex. Nâng cấp lên
+/// `AmTietTiengViet` nếu output biến đổi và de-tone base là âm tiết hợp lệ.
+fn loai_noi_dung_chu(chuoi: &str, slice: &[ThaoTacNhap], don_vi: &[DonViRender]) -> LoaiNoiDung {
+    let raw: String = slice.iter().map(|t| t.ky_tu).collect();
+    let loai = loai_noi_dung_cua(chuoi, &raw);
+    if loai == LoaiNoiDung::BienDoiTelex {
+        let base = lua_chon::render_de_tu_don_vi(don_vi);
+        if matches!(
+            crate::am_tiet::phan_tich_am_tiet(&base),
+            crate::am_tiet::MucHopLe::CoTheTiepTuc
+        ) {
+            LoaiNoiDung::AmTietTiengViet
+        } else {
+            loai
+        }
+    } else {
+        loai
+    }
+}
+
 /// Xác định loại nội dung từ output và raw.
-fn loai_noi_dung_cua(noi_dung: &str, noi_dung_goc: &str) -> LoaiNoiDung {
-    if noi_dung_goc.is_empty() {
+fn loai_noi_dung_cua(noi_dung: &str, raw: &str) -> LoaiNoiDung {
+    if raw.is_empty() {
         LoaiNoiDung::Trong
-    } else if noi_dung == noi_dung_goc {
+    } else if noi_dung == raw {
         LoaiNoiDung::NguyenBan
     } else {
         LoaiNoiDung::BienDoiTelex
