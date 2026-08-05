@@ -72,8 +72,31 @@ Các quyết định kiến trúc quan trọng được ghi tại:
 
 | Dependency | Loại | Mục đích |
 |---|---|---|
-| `unicode-segmentation` | runtime | Tính grapheme cluster chính xác. |
-| `serde` | optional | Derive serialization cho public data type (chỉ khi bật feature `serde`). |
+| `unicode-segmentation` | runtime | Tính grapheme cluster chính xác. Tắt default-features để dùng được no_std. |
+| `serde` | optional | Derive `Serialize`/`Deserialize` khi bật feature `serde`. |
+| `proptest` | dev | Property test bất biến nền tảng. |
+| `criterion` | dev | Benchmark nền. |
+
+### Chính sách dependency
+
+* Mỗi dependency phải có mục đích rõ, không thêm regex, async runtime,
+  logging framework, parser framework, collection crate hay error framework.
+* Runtime dependency Phase 1 chỉ có `unicode-segmentation`.
+* `serde` là optional (`dep:serde`, `default-features = false`,
+  `features = ["alloc", "derive"]`) — người dùng bình thường không kéo serde.
+
+### Chính sách serde (Phase 1)
+
+Phase 1 **không** derive serde cho snapshot (`BanChupSoan`, `ViTriVanBan`)
+theo §16 vì chưa có use case thật. Chỉ derive serde cho các data type không
+phải snapshot và không có ràng buộc validation:
+
+* `KetQuaXuLy` — kết quả thao tác, host có thể ghi log/lưu trữ.
+* `LoaiNoiDung` — loại nội dung, host có thể phân loại.
+
+`CauHinh` **không** derive serde vì `Deserialize` sẽ bỏ qua validation trong
+`dat_gioi_han_thao_tac`, cho phép cấu hình ngoài phạm vi. Phase sau nếu cần
+serialize cấu hình phải viết `Deserialize` tùy chỉnh có validate.
 | `proptest` | dev | Property test bất biến nền tảng. |
 | `criterion` | dev | Benchmark nền. |
 
