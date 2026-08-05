@@ -74,3 +74,85 @@ fn nguoi_khong_khac_giua_hai_quy_tac() {
     assert_eq!(go(hien_dai(), "nguowif"), "người");
     assert_eq!(go(truyen_thong(), "nguowif"), "người");
 }
+
+// ---------------------------------------------------------------------------
+// Matrix: mọi tone key × mọi on-glide combo (HienDai vs TruyenThong).
+// ---------------------------------------------------------------------------
+
+/// Matrix: `oa` + tone — HienDai trên `o`, TruyenThong trên `a`.
+#[test]
+fn matrix_oa_tone() {
+    let cases = [
+        ('s', "hóa", "hoá"),
+        ('f', "hòa", "hoà"),
+        ('r', "hỏa", "hoả"),
+        ('x', "hõa", "hoã"),
+        ('j', "họa", "hoạ"),
+    ];
+    for (tone, hd, tt) in cases {
+        let raw = format!("hoa{tone}");
+        assert_eq!(go(hien_dai(), &raw), hd, "HienDai {raw}");
+        assert_eq!(go(truyen_thong(), &raw), tt, "TruyenThong {raw}");
+    }
+}
+
+/// Matrix: `oe` + tone — HienDai trên `o`, TruyenThong trên `e`.
+#[test]
+fn matrix_oe_tone() {
+    let cases = [
+        ('s', "dóe", "doé"),
+        ('f', "dòe", "doè"),
+        ('r', "dỏe", "doẻ"),
+        ('x', "dõe", "doẽ"),
+        ('j', "dọe", "doẹ"),
+    ];
+    for (tone, hd, tt) in cases {
+        let raw = format!("doe{tone}");
+        assert_eq!(go(hien_dai(), &raw), hd, "HienDai {raw}");
+        assert_eq!(go(truyen_thong(), &raw), tt, "TruyenThong {raw}");
+    }
+}
+
+/// Matrix: `ua` + tone — cả hai quy tắc cho cùng kết quả (tone trên `a`).
+#[test]
+fn matrix_ua_tone_cung_ket_qua() {
+    for tone in ['s', 'f', 'r', 'x', 'j'] {
+        let raw = format!("hua{tone}");
+        assert_eq!(
+            go(hien_dai(), &raw),
+            go(truyen_thong(), &raw),
+            "ua{tone} phai cung ket qua"
+        );
+    }
+}
+
+/// Đơn nguyên âm + tone: cả hai quy tắc cho cùng kết quả.
+#[test]
+fn matrix_don_nguyen_am_tone_cung_ket_qua() {
+    for v in ['a', 'e', 'i', 'o', 'u', 'y'] {
+        for tone in ['s', 'f', 'r', 'x', 'j'] {
+            let raw = format!("{v}{tone}");
+            assert_eq!(
+                go(hien_dai(), &raw),
+                go(truyen_thong(), &raw),
+                "{v}{tone} phai cung ket qua"
+            );
+        }
+    }
+}
+
+/// Hình chữ + tone: cả hai quy tắc cho cùng kết quả (shape không có glide).
+#[test]
+fn matrix_hinh_chu_tone_cung_ket_qua() {
+    let shapes = ["aa", "aw", "ee", "oo", "ow", "uw"];
+    for shape in &shapes {
+        for tone in ['s', 'f', 'r', 'x', 'j'] {
+            let raw = format!("{shape}{tone}");
+            assert_eq!(
+                go(hien_dai(), &raw),
+                go(truyen_thong(), &raw),
+                "{shape}{tone} phai cung ket qua"
+            );
+        }
+    }
+}
