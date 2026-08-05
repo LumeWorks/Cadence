@@ -17,6 +17,7 @@ pub(crate) mod chu_viet;
 pub mod ket_qua;
 pub mod loai_noi_dung;
 pub(crate) mod lua_chon;
+pub(crate) mod ngu_canh;
 pub(crate) mod phan_doan;
 pub mod phien_go;
 pub(crate) mod render;
@@ -26,9 +27,7 @@ pub mod vi_tri;
 
 pub use ban_chup::BanChupSoan;
 pub use bo_go::BoGo;
-pub use cau_hinh::{
-    CauHinh, ChinhSachLuaChon, DangUnicode, KieuTelex, LoiCauHinh, QuyTacDatDau,
-};
+pub use cau_hinh::{CauHinh, ChinhSachLuaChon, DangUnicode, KieuTelex, LoiCauHinh, QuyTacDatDau};
 pub use ket_qua::KetQuaXuLy;
 pub use loai_noi_dung::LoaiNoiDung;
 pub use phien_go::PhienGo;

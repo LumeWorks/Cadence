@@ -103,7 +103,9 @@ pub(crate) fn phan_tich_am_tiet(s: &str) -> MucHopLe {
     // âm đầy (a, ă, â, e, ê, ô, ơ) không bao giờ đứng làm glide nên tổ hợp
     // hai nguyên âm đầy không hợp lệ.
     if van.chars().count() >= 2
-        && !van.chars().any(|c| matches!(c, 'i' | 'u' | 'ư' | 'y' | 'o'))
+        && !van
+            .chars()
+            .any(|c| matches!(c, 'i' | 'u' | 'ư' | 'y' | 'o'))
     {
         return MucHopLe::KhongHopLe;
     }

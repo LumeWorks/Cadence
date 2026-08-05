@@ -12,6 +12,7 @@
 //! lịch sử thao tác → phan_doan → Vec<Doan> → mỗi đoạn render riêng
 //! ```
 
+use alloc::vec::Vec;
 use crate::cau_hinh::KieuTelex;
 use crate::render;
 use crate::thao_tac::{CachNhap, ThaoTacNhap};
@@ -50,13 +51,6 @@ pub(crate) struct Doan {
     pub(crate) loai: LoaiDoan,
 }
 
-impl Doan {
-    /// Trả số thao tác raw trong đoạn.
-    pub(crate) fn do_dai(self) -> usize {
-        self.ket_thuc - self.bat_dau
-    }
-}
-
 /// Trả `true` nếu `c` là một trong các chữ cái nền có shape doubled-base
 /// (`a`/`e`/`o`/`d`), không phân biệt hoa thường.
 fn la_chu_hinh_nhan_doi(c: char) -> bool {
@@ -80,7 +74,7 @@ pub(crate) fn la_teencode_lap(thao_tac: &[ThaoTacNhap]) -> bool {
         if la_chu_hinh_nhan_doi(c) {
             let run = thao_tac[i..]
                 .iter()
-                .take_while(|t| t.ky_tu.to_ascii_lowercase() == c.to_ascii_lowercase())
+                .take_while(|t| t.ky_tu.eq_ignore_ascii_case(&c))
                 .count();
             if run >= 3 && i > 0 {
                 return true;
@@ -100,15 +94,34 @@ fn la_khoang_trang(c: char) -> bool {
 
 /// Trả `true` nếu ký tự là dấu câu văn bản (không kỹ thuật).
 fn la_dau_cau(c: char) -> bool {
-    matches!(c, '.' | ',' | '!' | '?' | ';' | '\'' | '"' | '(' | ')' | '-' | '_')
+    matches!(
+        c,
+        '.' | ',' | '!' | '?' | ';' | '\'' | '"' | '(' | ')' | '-' | '_'
+    )
 }
 
 /// Trả `true` nếu ký tự là ký tự kỹ thuật (ranh giới mạnh).
 fn la_ky_thuat(c: char) -> bool {
     matches!(
         c,
-        ':' | '/' | '\\' | '@' | '#' | '$' | '%' | '^' | '&' | '*' | '+' | '=' | '<' | '>'
-            | '{' | '}' | '|' | '`' | '~'
+        ':' | '/'
+            | '\\'
+            | '@'
+            | '#'
+            | '$'
+            | '%'
+            | '^'
+            | '&'
+            | '*'
+            | '+'
+            | '='
+            | '<'
+            | '>'
+            | '{'
+            | '}'
+            | '|'
+            | '`'
+            | '~'
     )
 }
 
@@ -173,6 +186,7 @@ pub(crate) fn phan_doan(thao_tac: &[ThaoTacNhap], kieu_telex: KieuTelex) -> Vec<
 #[cfg(test)]
 mod test {
     use super::*;
+    use alloc::vec;
 
     fn td(c: char) -> ThaoTacNhap {
         ThaoTacNhap::tu_dong(c)
@@ -202,11 +216,7 @@ mod test {
         let d = phan_doan(&tt, KieuTelex::CanBang);
         assert_eq!(
             d.iter().map(|x| x.loai).collect::<Vec<_>>(),
-            vec![
-                LoaiDoan::Chu,
-                LoaiDoan::KhoangTrang,
-                LoaiDoan::Chu
-            ]
+            vec![LoaiDoan::Chu, LoaiDoan::KhoangTrang, LoaiDoan::Chu]
         );
     }
 
@@ -242,7 +252,10 @@ mod test {
     fn phan_doan_canbang_ngoac_la_ky_thuat() {
         let tt = raw("]f");
         let d = phan_doan(&tt, KieuTelex::CanBang);
-        assert_eq!(d.iter().map(|x| x.loai).collect::<Vec<_>>(), vec![LoaiDoan::KyThuat, LoaiDoan::Chu]);
+        assert_eq!(
+            d.iter().map(|x| x.loai).collect::<Vec<_>>(),
+            vec![LoaiDoan::KyThuat, LoaiDoan::Chu]
+        );
     }
 
     #[test]
