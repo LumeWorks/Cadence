@@ -70,7 +70,7 @@ Rust 1.85.
 
 ## Giấy phép
 
-MPL-2.0. Xem [`LICENSE`](LICENSE) và [`NOTICE`](NOTICE).
+MPL-2.0. Xem [`LICENSE`](./LICENSE) và [`NOTICE`](./NOTICE).
 
 ## Credit
 
