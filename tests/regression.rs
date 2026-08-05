@@ -112,11 +112,12 @@ fn reg_gioi_han_xoa_roi_them_lai() {
     assert_eq!(phien.ban_chup().noi_dung(), "ad");
 }
 
-/// Regression: `khoi_phuc_nguyen_ban` hiện là no-op (Phase 2). Pipeline luôn
-/// rebuild từ raw, nên method trả `KhongDoi` và không thay đổi snapshot.
-/// Phase 3 sẽ triển khai toggle thực sự.
+/// Regression: `khoi_phuc_nguyen_ban` là no-op idempotent. Pipeline luôn
+/// rebuild từ raw làm nguồn sự thật, nên raw luôn có qua `noi_dung_goc()`.
+/// Method tồn tại cho API completeness, luôn trả `KhongDoi`, không toggle
+/// state phiên (xem `docs/INVARIANTS.md` và `docs/api/public-api-0.1.0.md`).
 #[test]
-fn reg_khoi_phuc_nguyen_ban_la_no_op_phase2() {
+fn reg_khoi_phuc_nguyen_ban_la_no_op() {
     let mut phien = tao_phien();
     for c in "tieengs".chars() {
         phien.them_ky_tu(c);

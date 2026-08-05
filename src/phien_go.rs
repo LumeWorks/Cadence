@@ -17,6 +17,15 @@ use crate::thao_tac::ThaoTacNhap;
 /// Lịch sử thao tác là nguồn sự thật; snapshot luôn được dựng lại từ
 /// lịch sử sau mỗi thay đổi. Con trỏ nội bộ là raw position (số thao tác
 /// trước con trỏ), luôn được snap về ranh giới grapheme navigable.
+///
+/// # Threading
+///
+/// `PhienGo` là `Send`: có thể chuyển quyền sở hữu sang thread khác (một
+/// phiên cho một input context, xử lý trên thread đó). `PhienGo` cũng là
+/// `Sync` cho chia sẻ chỉ đọc (`&PhienGo`): các method đọc (`ban_chup`,
+/// `trace`, `dang_trong`) an toàn khi chia sẻ; các method `&mut self` cần
+/// quyền sở hữu độc quyền. Cam kết này được kiểm chứng trong
+/// `tests/contract.rs`.
 pub struct PhienGo {
     /// Bản sao giới hạn thao tác cần thiết cho phiên.
     gioi_han_thao_tac: usize,
@@ -167,10 +176,16 @@ impl PhienGo {
 
     /// Khôi phục nguyên bản: hiển thị đúng raw input, không biến đổi Telex.
     ///
-    /// Phase 2: Telex engine đã đầy đủ. Method này hiện là no-op vì pipeline
-    /// luôn dựng lại từ raw - `noi_dung_goc()` đã cung cấp raw output.
-    /// TODO(phase-3): thêm toggle để switch giữa Telex output và raw output
-    /// trong cùng phiên, idempotent.
+    /// Đây là **no-op idempotent**: pipeline của Cadence luôn dựng lại snapshot
+    /// từ lịch sử raw làm nguồn sự thật, nên raw không bao giờ bị mất và luôn
+    /// có sẵn qua [`BanChupSoan::noi_dung_goc`](crate::BanChupSoan::noi_dung_goc).
+    /// Method này tồn tại cho API completeness và luôn trả [`KetQuaXuLy::KhongDoi`].
+    ///
+    /// Lý do không toggle raw/Telex trong cùng phiên: một phiên chỉ có một
+    /// output; nếu host muốn xem raw, đọc `noi_dung_goc()`. Việc thêm toggle
+    /// sẽ tạo trạng thái hiển thị thứ hai, phá bất biến "lịch sử là nguồn sự
+    /// thật duy nhất" (RFC 0002). Nếu sau này cần chế độ xem raw riêng, sẽ
+    /// thêm snapshot view riêng chứ không toggle state phiên.
     pub fn khoi_phuc_nguyen_ban(&mut self) -> KetQuaXuLy {
         KetQuaXuLy::KhongDoi
     }
