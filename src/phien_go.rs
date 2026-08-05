@@ -132,6 +132,40 @@ impl PhienGo {
         KetQuaXuLy::CapNhat
     }
 
+    /// Khôi phục nguyên bản: đảm bảo snapshot hiển thị đúng nội dung gốc
+    /// người dùng nhập, không bị biến đổi.
+    ///
+    /// Phase 1 luôn render nguyên bản nên không có gì cần khôi phục; method
+    /// idempotent và trả `KhongDoi`. Phase 2 sẽ dùng nó để hủy biến đổi Telex.
+    pub fn khoi_phuc_nguyen_ban(&mut self) -> KetQuaXuLy {
+        KetQuaXuLy::KhongDoi
+    }
+
+    /// Commit đoạn đang soạn: trả nội dung hiện tại, rồi đặt lại phiên.
+    ///
+    /// Commit phiên rỗng trả `KhongDoi` và không thay đổi state.
+    pub fn chap_nhan(&mut self) -> KetQuaXuLy {
+        if self.dang_trong() {
+            return KetQuaXuLy::KhongDoi;
+        }
+        let noi_dung = String::from(self.ban_chup_hien_tai.noi_dung());
+        self.reset();
+        KetQuaXuLy::ChapNhan { noi_dung }
+    }
+
+    /// Đặt lại phiên: xóa toàn bộ lịch sử, con trỏ và snapshot.
+    pub fn dat_lai(&mut self) {
+        self.reset();
+    }
+
+    /// Xóa toàn bộ state nội bộ. Dùng chung cho `chap_nhan` và `dat_lai`.
+    fn reset(&mut self) {
+        self.lich_su.clear();
+        self.con_tro = 0;
+        self.bo_dem.clear();
+        self.ban_chup_hien_tai = BanChupSoan::rong();
+    }
+
     /// Chèn một thao tác tại con trỏ, cập nhật con trỏ và dựng lại snapshot.
     fn chen_thao_tac(&mut self, thao_tac: ThaoTacNhap) -> KetQuaXuLy {
         if self.lich_su.len() >= self.gioi_han_thao_tac {
