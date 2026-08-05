@@ -206,6 +206,74 @@ fn telex_nguoi(c: &mut Criterion) {
     });
 }
 
+/// Phase 3: gõ code trộn tiếng Việt — "cargo build lỗi rồi =))".
+/// Đo phân đoạn + nhận diện ngữ cảnh + render per-segment.
+fn phase3_code_tron(c: &mut Criterion) {
+    c.bench_function("phase3_code_tron", |b| {
+        b.iter_batched(
+            || tao_phien(4096),
+            |mut phien| {
+                for c in "cargo build lỗi rồi =))".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// Phase 3: gõ URL dài — "https://example.com/path?query=1".
+/// Đo nhận diện URL + toàn bộ raw path.
+fn phase3_url(c: &mut Criterion) {
+    c.bench_function("phase3_url", |b| {
+        b.iter_batched(
+            || tao_phien(4096),
+            |mut phien| {
+                for c in "https://example.com/path?query=1".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// Phase 3: gõ namespace Rust — "foo::bar::baz".
+/// Đo nhận diện `::` adjacency trên nhiều đoạn.
+fn phase3_namespace(c: &mut Criterion) {
+    c.bench_function("phase3_namespace", |b| {
+        b.iter_batched(
+            || tao_phien(4096),
+            |mut phien| {
+                for c in "foo::bar::baz".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// Phase 3: gõ teencode lặp — "brooooooo".
+/// Đo phát hiện teencode-lap trước Telex.
+fn phase3_teencode_lap(c: &mut Criterion) {
+    c.bench_function("phase3_teencode_lap", |b| {
+        b.iter_batched(
+            || tao_phien(4096),
+            |mut phien| {
+                for c in "brooooooo".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
 criterion_group!(
     benches,
     them_ascii_token_ngan,
@@ -219,5 +287,9 @@ criterion_group!(
     telex_escape,
     telex_am_tiet_dai,
     telex_nguoi,
+    phase3_code_tron,
+    phase3_url,
+    phase3_namespace,
+    phase3_teencode_lap,
 );
 criterion_main!(benches);
