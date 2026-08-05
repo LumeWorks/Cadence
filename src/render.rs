@@ -231,3 +231,145 @@ fn tu_dau_thanh(c: char) -> DauThanh {
         _ => DauThanh::Khong,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::chu_viet::{ChuGoc, DauChu, DauThanh, KieuHoa};
+
+    /// nguyen_am_nfc: mọi tổ hợp (vowel, Khong, Khong) → ký tự thường gốc.
+    #[test]
+    fn nguyen_am_nfc_khong_dau() {
+        let cases = [
+            (ChuGoc::A, 'a'),
+            (ChuGoc::E, 'e'),
+            (ChuGoc::I, 'i'),
+            (ChuGoc::O, 'o'),
+            (ChuGoc::U, 'u'),
+            (ChuGoc::Y, 'y'),
+        ];
+        for (goc, exp) in cases {
+            assert_eq!(
+                nguyen_am_nfc(goc, DauChu::Khong, DauThanh::Khong),
+                Some(exp),
+                "{goc:?} khong dau"
+            );
+        }
+    }
+
+    /// nguyen_am_nfc: phụ âm trả None (không có tổ hợp dựng sẵn).
+    #[test]
+    fn nguyen_am_nfc_phu_am_tra_none() {
+        assert_eq!(
+            nguyen_am_nfc(ChuGoc::D, DauChu::Khong, DauThanh::Khong),
+            None
+        );
+        assert_eq!(
+            nguyen_am_nfc(ChuGoc::PhuAm('b'), DauChu::Khong, DauThanh::Khong),
+            None
+        );
+    }
+
+    /// nguyen_am_nfc: tổ hợp dấu không hợp lệ (vd I + Trang) trả None.
+    #[test]
+    fn nguyen_am_nfc_to_hop_sai_tra_none() {
+        // `i` không nhận dấu trăng/mũ/móc.
+        assert_eq!(
+            nguyen_am_nfc(ChuGoc::I, DauChu::Trang, DauThanh::Khong),
+            None
+        );
+        assert_eq!(nguyen_am_nfc(ChuGoc::I, DauChu::Mu, DauThanh::Khong), None);
+        assert_eq!(nguyen_am_nfc(ChuGoc::I, DauChu::Moc, DauThanh::Khong), None);
+        // `y` không nhận dấu hình chữ.
+        assert_eq!(
+            nguyen_am_nfc(ChuGoc::Y, DauChu::Trang, DauThanh::Khong),
+            None
+        );
+    }
+
+    /// phan_tich_ky_tu round-trip: ký tự dựng sẵn → ChuCaiViet → render → gốc.
+    #[test]
+    fn phan_tich_ky_tu_round_trip() {
+        let chars = [
+            'á', 'à', 'ả', 'ã', 'ạ', 'ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ', 'â', 'ấ', 'ầ', 'ẩ', 'ẫ', 'ậ',
+            'é', 'è', 'ẻ', 'ẽ', 'ẹ', 'ê', 'ế', 'ề', 'ể', 'ễ', 'ệ', 'í', 'ì', 'ỉ', 'ĩ', 'ị', 'ó',
+            'ò', 'ỏ', 'õ', 'ọ', 'ô', 'ố', 'ồ', 'ổ', 'ỗ', 'ộ', 'ơ', 'ớ', 'ờ', 'ở', 'ỡ', 'ợ', 'ú',
+            'ù', 'ủ', 'ũ', 'ụ', 'ư', 'ứ', 'ừ', 'ử', 'ữ', 'ự', 'ý', 'ỳ', 'ỷ', 'ỹ', 'ỵ', 'đ',
+        ];
+        for &c in &chars {
+            let chu = phan_tich_ky_tu(c).unwrap_or_else(|| panic!("phan_tich {c} tra None"));
+            let rendered = render_chu(&chu, DangUnicode::Nfc);
+            assert_eq!(rendered.chars().count(), 1, "{c} render khong phai 1 char");
+            assert_eq!(rendered.chars().next(), Some(c), "{c} round-trip");
+        }
+    }
+
+    /// phan_tich_ky_tu: ký tự không phải chữ Việt → None.
+    #[test]
+    fn phan_tich_ky_tu_khong_phai_chu_viet() {
+        assert_eq!(phan_tich_ky_tu('b'), None);
+        assert_eq!(phan_tich_ky_tu('c'), None);
+        assert_eq!(phan_tich_ky_tu('1'), None);
+        assert_eq!(phan_tich_ky_tu('.'), None);
+        assert_eq!(phan_tich_ky_tu('😀'), None);
+    }
+
+    /// phan_tich_ky_tu: ký tự Việt THƯỜNG dựng sẵn giữ kiểu thường.
+    ///
+    /// Lưu ý (giới hạn 0.1.0): ký tự Việt HOA dựng sẵn (vd 'Ế') không được
+    /// `phan_tich_ky_tu` nhận diện vì `to_ascii_lowercase` không đổi non-ASCII.
+    /// Khi gõ trực tiếp, ký tự đó được giữ raw (an toàn), không parse. Xem
+    /// `docs/PHASE4_REPORT.md` known limitations.
+    #[test]
+    fn phan_tich_ky_tu_giu_kieu_thuong() {
+        let chu = phan_tich_ky_tu('ế').expect("e mu sac thuong");
+        assert_eq!(chu.kieu_hoa, KieuHoa::Thuong);
+        assert_eq!(chu.chu_goc, ChuGoc::E);
+        assert_eq!(chu.dau_chu, DauChu::Mu);
+        assert_eq!(chu.dau_thanh, DauThanh::Sac);
+        // Ký tự Việt HOA dựng sẵn không nhận diện (giới hạn 0.1.0).
+        assert_eq!(phan_tich_ky_tu('Ế'), None);
+        // Nhưng 'đ' hoa 'Đ' cũng không nhận diện (cùng lý do).
+        assert_eq!(phan_tich_ky_tu('Đ'), None);
+    }
+
+    /// tu_dau_thanh: mỗi ký tự tone → đúng DauThanh; ký tự không tone → Khong.
+    #[test]
+    fn tu_dau_thanh_dung() {
+        assert_eq!(tu_dau_thanh('á'), DauThanh::Sac);
+        assert_eq!(tu_dau_thanh('à'), DauThanh::Huyen);
+        assert_eq!(tu_dau_thanh('ả'), DauThanh::Hoi);
+        assert_eq!(tu_dau_thanh('ã'), DauThanh::Nga);
+        assert_eq!(tu_dau_thanh('ạ'), DauThanh::Nang);
+        // Ký tự không có tone → Khong.
+        assert_eq!(tu_dau_thanh('a'), DauThanh::Khong);
+        assert_eq!(tu_dau_thanh('x'), DauThanh::Khong);
+    }
+
+    /// render_chu NFD: tổ hợp có dấu phân rã thành base + combining marks.
+    #[test]
+    fn render_chu_nfd_phan_ra() {
+        let chu = ChuCaiViet {
+            chu_goc: ChuGoc::A,
+            dau_chu: DauChu::Trang,
+            dau_thanh: DauThanh::Sac,
+            kieu_hoa: KieuHoa::Thuong,
+        };
+        let nfd = render_chu(&chu, DangUnicode::Nfd);
+        // `ắ` NFD = a + U+0306 (breve) + U+0301 (acute).
+        assert_eq!(nfd, "a\u{0306}\u{0301}");
+    }
+
+    /// render_chu NFC: `đ` không phân rã (đ không có decomposition).
+    #[test]
+    fn render_chu_nfc_dd_khong_phan_ra() {
+        let chu = ChuCaiViet {
+            chu_goc: ChuGoc::D,
+            dau_chu: DauChu::Gach,
+            dau_thanh: DauThanh::Khong,
+            kieu_hoa: KieuHoa::Thuong,
+        };
+        assert_eq!(render_chu(&chu, DangUnicode::Nfc), "đ");
+        assert_eq!(render_chu(&chu, DangUnicode::Nfd), "đ");
+    }
+}

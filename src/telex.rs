@@ -397,3 +397,121 @@ pub(crate) fn xu_ly_doan_chu(
         co_escape_hinh_chu,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::cau_hinh::KieuTelex;
+    use crate::chu_viet::{ChuGoc, DauChu};
+
+    /// Bảng cap_hinh_chu: mỗi cặp (base, modifier) hợp lệ trả đúng (ChuGoc, DauChu).
+    #[test]
+    fn cap_hinh_chu_dung_cho_moi_cap() {
+        assert_eq!(cap_hinh_chu('a', 'a'), Some((ChuGoc::A, DauChu::Mu)));
+        assert_eq!(cap_hinh_chu('a', 'w'), Some((ChuGoc::A, DauChu::Trang)));
+        assert_eq!(cap_hinh_chu('e', 'e'), Some((ChuGoc::E, DauChu::Mu)));
+        assert_eq!(cap_hinh_chu('o', 'o'), Some((ChuGoc::O, DauChu::Mu)));
+        assert_eq!(cap_hinh_chu('o', 'w'), Some((ChuGoc::O, DauChu::Moc)));
+        assert_eq!(cap_hinh_chu('u', 'w'), Some((ChuGoc::U, DauChu::Moc)));
+        assert_eq!(cap_hinh_chu('d', 'd'), Some((ChuGoc::D, DauChu::Gach)));
+    }
+
+    /// cap_hinh_chu không nhận base sai (b, c, f, ...).
+    #[test]
+    fn cap_hinh_chu_base_sai_tra_none() {
+        assert_eq!(cap_hinh_chu('b', 'w'), None);
+        assert_eq!(cap_hinh_chu('c', 'w'), None);
+        assert_eq!(cap_hinh_chu('f', 'a'), None);
+        assert_eq!(cap_hinh_chu('i', 'w'), None);
+        assert_eq!(cap_hinh_chu('y', 'w'), None);
+    }
+
+    /// cap_hinh_chu case-insensitive (hoa/thường cho cùng kết quả).
+    #[test]
+    fn cap_hinh_chu_case_insensitive() {
+        assert_eq!(cap_hinh_chu('A', 'A'), Some((ChuGoc::A, DauChu::Mu)));
+        assert_eq!(cap_hinh_chu('A', 'W'), Some((ChuGoc::A, DauChu::Trang)));
+        assert_eq!(cap_hinh_chu('D', 'D'), Some((ChuGoc::D, DauChu::Gach)));
+    }
+
+    /// tu_dau_thanh_key: mỗi phím tone → đúng DauThanh.
+    #[test]
+    fn tu_dau_thanh_key_dung() {
+        assert_eq!(tu_dau_thanh_key('s'), Some(DauThanh::Sac));
+        assert_eq!(tu_dau_thanh_key('f'), Some(DauThanh::Huyen));
+        assert_eq!(tu_dau_thanh_key('r'), Some(DauThanh::Hoi));
+        assert_eq!(tu_dau_thanh_key('x'), Some(DauThanh::Nga));
+        assert_eq!(tu_dau_thanh_key('j'), Some(DauThanh::Nang));
+        assert_eq!(tu_dau_thanh_key('z'), Some(DauThanh::Khong));
+    }
+
+    /// tu_dau_thanh_key không nhận phím không phải tone.
+    #[test]
+    fn tu_dau_thanh_key_sai_tra_none() {
+        assert_eq!(tu_dau_thanh_key('a'), None);
+        assert_eq!(tu_dau_thanh_key('w'), None);
+        assert_eq!(tu_dau_thanh_key('d'), None);
+    }
+
+    /// la_phim_dau_thanh nhất quán với tu_dau_thanh_key (trừ `z` xóa dấu).
+    #[test]
+    fn la_phim_dau_thanh_nhat_quan() {
+        for c in ['s', 'f', 'r', 'x', 'j', 'z'] {
+            assert!(la_phim_dau_thanh(c), "{c} phai la phim tone");
+            assert!(
+                la_phim_dau_thanh(c.to_ascii_uppercase()),
+                "{} phai la phim tone",
+                c
+            );
+        }
+        for c in ['a', 'e', 'i', 'o', 'u', 'y', 'w', 'd', 'b'] {
+            assert!(!la_phim_dau_thanh(c), "{c} khong phai phim tone");
+        }
+    }
+
+    /// xu_ly_doan_chu: DayDu `w` đơn lẻ → `ư` (ChuGoc::U, DauChu::Moc).
+    #[test]
+    fn day_du_w_don_le_thanh_u_horn() {
+        let tts = [ThaoTacNhap::tu_dong('w')];
+        let kq = xu_ly_doan_chu(&tts, KieuTelex::DayDu, QuyTacDatDau::HienDai);
+        assert_eq!(kq.don_vi.len(), 1);
+        match &kq.don_vi[0].noi_dung {
+            NoiDungDonVi::Chu(chu) => {
+                assert_eq!(chu.chu_goc, ChuGoc::U);
+                assert_eq!(chu.dau_chu, DauChu::Moc);
+            }
+            NoiDungDonVi::Chuong(_) => panic!("w don le phai bien doi"),
+        }
+    }
+
+    /// xu_ly_doan_chu: CanBang `w` đơn lẻ → literal `w`.
+    #[test]
+    fn can_bang_w_don_le_literal() {
+        let tts = [ThaoTacNhap::tu_dong('w')];
+        let kq = xu_ly_doan_chu(&tts, KieuTelex::CanBang, QuyTacDatDau::HienDai);
+        assert_eq!(kq.don_vi.len(), 1);
+        assert!(matches!(kq.don_vi[0].noi_dung, NoiDungDonVi::Chuong('w')));
+    }
+
+    /// xu_ly_doan_chu: ký tự nguyên bản luôn literal, không biến đổi Telex.
+    ///
+    /// DayDu: `w` tự động → `ư` (shape Chu). `w` nguyên bản → literal `w`
+    /// (Chuong), không biến đổi.
+    #[test]
+    fn ky_tu_nguyen_ban_luon_literal() {
+        // `w` tự động trong DayDu → shape `ư` (Chu).
+        let tts_auto = [ThaoTacNhap::tu_dong('w')];
+        let kq_auto = xu_ly_doan_chu(&tts_auto, KieuTelex::DayDu, QuyTacDatDau::HienDai);
+        assert_eq!(kq_auto.don_vi.len(), 1);
+        assert!(matches!(kq_auto.don_vi[0].noi_dung, NoiDungDonVi::Chu(_)));
+
+        // `w` nguyên bản trong DayDu → literal `w` (Chuong), không shape.
+        let tts_raw = [ThaoTacNhap::nguyen_ban('w')];
+        let kq_raw = xu_ly_doan_chu(&tts_raw, KieuTelex::DayDu, QuyTacDatDau::HienDai);
+        assert_eq!(kq_raw.don_vi.len(), 1);
+        assert!(matches!(
+            kq_raw.don_vi[0].noi_dung,
+            NoiDungDonVi::Chuong('w')
+        ));
+    }
+}

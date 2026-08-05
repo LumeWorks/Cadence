@@ -147,3 +147,111 @@ pub(crate) fn raw_co_onset_hop_le(raw: &str) -> bool {
     let ky_tu_sau = sau.chars().next().unwrap_or(' ');
     la_nguyen_am(ky_tu_sau)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Bảng AM_DAU sắp xếp theo độ dài giảm - không entry bị longest-prefix
+    /// shadow (entry ngắn không nằm trước entry dài là prefix của nó).
+    #[test]
+    fn am_dau_khong_bi_shadow() {
+        for (i, &a) in AM_DAU.iter().enumerate() {
+            for (j, &b) in AM_DAU.iter().enumerate().skip(i + 1) {
+                // AM_DAU[i] không được là prefix của AM_DAU[j] (vì i nằm trước,
+                // nếu i là prefix của j thì j bị shadow khi longest-match).
+                assert!(
+                    !b.starts_with(a),
+                    "AM_DAU[{i}]={a:?} la prefix cua AM_DAU[{j}]={b:?}, j bi shadow"
+                );
+            }
+        }
+    }
+
+    /// Mọi entry AM_DAU match được (do_dai_am_dau > 0 cho chính nó).
+    #[test]
+    fn am_dau_moi_entry_match_duoc() {
+        for &am in AM_DAU {
+            let d = do_dai_am_dau(am);
+            assert_eq!(d, am.len(), "onset {am:?} khong match chinh no");
+        }
+    }
+
+    /// Bảng AM_CUOI sắp xếp theo độ dài giảm, không shadow.
+    #[test]
+    fn am_cuoi_khong_bi_shadow() {
+        for (i, &a) in AM_CUOI.iter().enumerate() {
+            for (j, &b) in AM_CUOI.iter().enumerate().skip(i + 1) {
+                assert!(
+                    !b.starts_with(a),
+                    "AM_CUOI[{i}]={a:?} la prefix cua AM_CUOI[{j}]={b:?}"
+                );
+            }
+        }
+    }
+
+    /// Mọi entry AM_CUOI match được.
+    #[test]
+    fn am_cuoi_moi_entry_match_duoc() {
+        for &am in AM_CUOI {
+            let d = do_dai_am_cuoi(am);
+            assert_eq!(d, am.len(), "coda {am:?} khong match chinh no");
+        }
+    }
+
+    /// `ngh` match trước `ng` (longest prefix).
+    #[test]
+    fn ngh_match_truoc_ng() {
+        assert_eq!(do_dai_am_dau("nghia"), 3);
+        assert_eq!(do_dai_am_dau("nga"), 2);
+        assert_eq!(do_dai_am_dau("na"), 1);
+    }
+
+    /// `ch` match cho cả onset và coda.
+    #[test]
+    fn ch_match_onset_va_coda() {
+        assert_eq!(do_dai_am_dau("cha"), 2);
+        assert_eq!(do_dai_am_cuoi("ach"), 2);
+    }
+
+    /// `la_nguyen_am` nhất quán với bảng (a/ă/â/e/ê/i/o/ô/ơ/u/ư/y).
+    #[test]
+    fn la_nguyen_am_nhat_quan() {
+        for c in ['a', 'ă', 'â', 'e', 'ê', 'i', 'o', 'ô', 'ơ', 'u', 'ư', 'y'] {
+            assert!(la_nguyen_am(c), "{c} phai la nguyen am");
+            assert!(
+                la_nguyen_am(c.to_ascii_uppercase()),
+                "{} phai la nguyen am hoa",
+                c
+            );
+        }
+        for c in [
+            'b', 'c', 'd', 'f', 'g', 'h', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'x',
+            'z',
+        ] {
+            assert!(!la_nguyen_am(c), "{c} khong phai nguyen am");
+        }
+    }
+
+    /// `phan_tich_am_tiet`: rỗng → CoTheTiepTuc.
+    #[test]
+    fn phan_tich_rong_co_the_tiep_tuc() {
+        assert_eq!(phan_tich_am_tiet(""), MucHopLe::CoTheTiepTuc);
+    }
+
+    /// `phan_tich_am_tiet`: onset + vowel + coda hợp lệ → CoTheTiepTuc.
+    #[test]
+    fn phan_tich_am_tiet_day_du() {
+        assert_eq!(phan_tich_am_tiet("con"), MucHopLe::CoTheTiepTuc);
+        assert_eq!(phan_tich_am_tiet("ngang"), MucHopLe::CoTheTiepTuc);
+        assert_eq!(phan_tich_am_tiet("nghiem"), MucHopLe::CoTheTiepTuc);
+    }
+
+    /// `phan_tich_am_tiet`: hai nguyên âm đầy không glide → KhongHopLe.
+    #[test]
+    fn phan_tich_hai_nguyen_am_day_khong_hop_le() {
+        assert_eq!(phan_tich_am_tiet("ae"), MucHopLe::KhongHopLe);
+        // `uo` có glide `u` → hợp lệ.
+        assert_eq!(phan_tich_am_tiet("uo"), MucHopLe::CoTheTiepTuc);
+    }
+}

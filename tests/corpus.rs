@@ -11,10 +11,10 @@
 //! Dùng `#[path]` để Rust resolve submodule trong `tests/corpus/` (integration
 //! test crate root là `tests/corpus.rs`).
 
-#[path = "corpus/am_tiet.rs"]
-mod am_tiet;
 #[path = "corpus/adversarial.rs"]
 mod adversarial;
+#[path = "corpus/am_tiet.rs"]
+mod am_tiet;
 #[path = "corpus/code.rs"]
 mod code;
 #[path = "corpus/command.rs"]

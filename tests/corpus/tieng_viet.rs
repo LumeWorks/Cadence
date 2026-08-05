@@ -19,7 +19,13 @@ fn go(raw: &str) -> String {
     phien.ban_chup().noi_dung().to_string()
 }
 
-fn go_with(raw: &str, kieu: KieuTelex, quy_tac: QuyTacDatDau, dang: DangUnicode, cs: ChinhSachLuaChon) -> String {
+fn go_with(
+    raw: &str,
+    kieu: KieuTelex,
+    quy_tac: QuyTacDatDau,
+    dang: DangUnicode,
+    cs: ChinhSachLuaChon,
+) -> String {
     let mut c = CauHinh::mac_dinh();
     c.dat_kieu_telex(kieu);
     c.dat_quy_tac_dat_dau(quy_tac);
@@ -38,8 +44,8 @@ fn go_with(raw: &str, kieu: KieuTelex, quy_tac: QuyTacDatDau, dang: DangUnicode,
 #[test]
 fn moi_am_dau_voi_a() {
     let onsets = [
-        "b", "c", "d", "đ", "g", "h", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "x",
-        "ch", "gh", "gi", "kh", "ng", "ngh", "nh", "ph", "qu", "th", "tr",
+        "b", "c", "d", "đ", "g", "h", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "x", "ch",
+        "gh", "gi", "kh", "ng", "ngh", "nh", "ph", "qu", "th", "tr",
     ];
     for o in onsets {
         let raw = format!("{o}a");
@@ -62,12 +68,36 @@ fn moi_am_cuoi_sau_a() {
 fn nguyen_am_don_sau_thanh() {
     // (vowel, tone_key, expected_nfc)
     let cases = [
-        ('a', 's', 'á'), ('a', 'f', 'à'), ('a', 'r', 'ả'), ('a', 'x', 'ã'), ('a', 'j', 'ạ'),
-        ('e', 's', 'é'), ('e', 'f', 'è'), ('e', 'r', 'ẻ'), ('e', 'x', 'ẽ'), ('e', 'j', 'ẹ'),
-        ('i', 's', 'í'), ('i', 'f', 'ì'), ('i', 'r', 'ỉ'), ('i', 'x', 'ĩ'), ('i', 'j', 'ị'),
-        ('o', 's', 'ó'), ('o', 'f', 'ò'), ('o', 'r', 'ỏ'), ('o', 'x', 'õ'), ('o', 'j', 'ọ'),
-        ('u', 's', 'ú'), ('u', 'f', 'ù'), ('u', 'r', 'ủ'), ('u', 'x', 'ũ'), ('u', 'j', 'ụ'),
-        ('y', 's', 'ý'), ('y', 'f', 'ỳ'), ('y', 'r', 'ỷ'), ('y', 'x', 'ỹ'), ('y', 'j', 'ỵ'),
+        ('a', 's', 'á'),
+        ('a', 'f', 'à'),
+        ('a', 'r', 'ả'),
+        ('a', 'x', 'ã'),
+        ('a', 'j', 'ạ'),
+        ('e', 's', 'é'),
+        ('e', 'f', 'è'),
+        ('e', 'r', 'ẻ'),
+        ('e', 'x', 'ẽ'),
+        ('e', 'j', 'ẹ'),
+        ('i', 's', 'í'),
+        ('i', 'f', 'ì'),
+        ('i', 'r', 'ỉ'),
+        ('i', 'x', 'ĩ'),
+        ('i', 'j', 'ị'),
+        ('o', 's', 'ó'),
+        ('o', 'f', 'ò'),
+        ('o', 'r', 'ỏ'),
+        ('o', 'x', 'õ'),
+        ('o', 'j', 'ọ'),
+        ('u', 's', 'ú'),
+        ('u', 'f', 'ù'),
+        ('u', 'r', 'ủ'),
+        ('u', 'x', 'ũ'),
+        ('u', 'j', 'ụ'),
+        ('y', 's', 'ý'),
+        ('y', 'f', 'ỳ'),
+        ('y', 'r', 'ỷ'),
+        ('y', 'x', 'ỹ'),
+        ('y', 'j', 'ỵ'),
     ];
     for (v, t, exp) in cases {
         let raw = format!("{v}{t}");
@@ -80,12 +110,36 @@ fn nguyen_am_don_sau_thanh() {
 fn hinh_chu_sau_thanh() {
     // (shape_raw, expected_nfc)
     let cases = [
-        ("aws", "ắ"), ("awf", "ằ"), ("awr", "ẳ"), ("awx", "ẵ"), ("awj", "ặ"),
-        ("aas", "ấ"), ("aaf", "ầ"), ("aar", "ẩ"), ("aax", "ẫ"), ("aaj", "ậ"),
-        ("ows", "ớ"), ("owf", "ờ"), ("owr", "ở"), ("owx", "ỡ"), ("owj", "ợ"),
-        ("ees", "ế"), ("eef", "ề"), ("eer", "ể"), ("eex", "ễ"), ("eej", "ệ"),
-        ("oos", "ố"), ("oof", "ồ"), ("oor", "ổ"), ("oox", "ỗ"), ("ooj", "ộ"),
-        ("uws", "ứ"), ("uwf", "ừ"), ("uwr", "ử"), ("uwx", "ữ"), ("uwj", "ự"),
+        ("aws", "ắ"),
+        ("awf", "ằ"),
+        ("awr", "ẳ"),
+        ("awx", "ẵ"),
+        ("awj", "ặ"),
+        ("aas", "ấ"),
+        ("aaf", "ầ"),
+        ("aar", "ẩ"),
+        ("aax", "ẫ"),
+        ("aaj", "ậ"),
+        ("ows", "ớ"),
+        ("owf", "ờ"),
+        ("owr", "ở"),
+        ("owx", "ỡ"),
+        ("owj", "ợ"),
+        ("ees", "ế"),
+        ("eef", "ề"),
+        ("eer", "ể"),
+        ("eex", "ễ"),
+        ("eej", "ệ"),
+        ("oos", "ố"),
+        ("oof", "ồ"),
+        ("oor", "ổ"),
+        ("oox", "ỗ"),
+        ("ooj", "ộ"),
+        ("uws", "ứ"),
+        ("uwf", "ừ"),
+        ("uwr", "ử"),
+        ("uwx", "ữ"),
+        ("uwj", "ự"),
     ];
     for (raw, exp) in cases {
         assert_eq!(go(raw), exp, "{raw}");
@@ -100,7 +154,13 @@ fn cum_doi_tone() {
     assert_eq!(go("hoaf"), "hòa");
     // TruyenThong: tone trên `a` → `hoá`.
     assert_eq!(
-        go_with("hoas", KieuTelex::CanBang, QuyTacDatDau::TruyenThong, DangUnicode::Nfc, ChinhSachLuaChon::TuNhien),
+        go_with(
+            "hoas",
+            KieuTelex::CanBang,
+            QuyTacDatDau::TruyenThong,
+            DangUnicode::Nfc,
+            ChinhSachLuaChon::TuNhien
+        ),
         "hoá"
     );
     // `uow` → `ươ` (tam nguyên âm, không tone). `ươ` = ư(U+1B0) + ơ(U+01A1).
@@ -167,7 +227,10 @@ fn input_nfd_tuong_duong_nfc() {
     }
     let out_nfd = phien_nfd.ban_chup().noi_dung().to_string();
     // NFC output của cùng semantic phải canonical equivalent.
-    assert_eq!(out_nfd.nfd().collect::<String>(), "tiếng".nfd().collect::<String>());
+    assert_eq!(
+        out_nfd.nfd().collect::<String>(),
+        "tiếng".nfd().collect::<String>()
+    );
     // Raw giữ byte-for-byte.
     assert_eq!(phien_nfd.ban_chup().noi_dung_goc(), nfd_input);
 }
@@ -175,16 +238,43 @@ fn input_nfd_tuong_duong_nfc() {
 /// Direct Vietnamese input và Telex tương đương khi cùng output semantic.
 #[test]
 fn direct_va_telex_tuong_duong() {
-    let direct = go_with("tiếng", KieuTelex::CanBang, QuyTacDatDau::HienDai, DangUnicode::Nfc, ChinhSachLuaChon::TuNhien);
-    let telex = go_with("tieengs", KieuTelex::CanBang, QuyTacDatDau::HienDai, DangUnicode::Nfc, ChinhSachLuaChon::TuNhien);
-    assert_eq!(direct.nfd().collect::<String>(), telex.nfd().collect::<String>());
+    let direct = go_with(
+        "tiếng",
+        KieuTelex::CanBang,
+        QuyTacDatDau::HienDai,
+        DangUnicode::Nfc,
+        ChinhSachLuaChon::TuNhien,
+    );
+    let telex = go_with(
+        "tieengs",
+        KieuTelex::CanBang,
+        QuyTacDatDau::HienDai,
+        DangUnicode::Nfc,
+        ChinhSachLuaChon::TuNhien,
+    );
+    assert_eq!(
+        direct.nfd().collect::<String>(),
+        telex.nfd().collect::<String>()
+    );
 }
 
 /// Output NFC idempotent dưới NFC; NFD idempotent dưới NFD.
 #[test]
 fn nfc_nfd_idempotent() {
-    let nfc = go_with("tieengs", KieuTelex::CanBang, QuyTacDatDau::HienDai, DangUnicode::Nfc, ChinhSachLuaChon::TuNhien);
-    let nfd = go_with("tieengs", KieuTelex::CanBang, QuyTacDatDau::HienDai, DangUnicode::Nfd, ChinhSachLuaChon::TuNhien);
+    let nfc = go_with(
+        "tieengs",
+        KieuTelex::CanBang,
+        QuyTacDatDau::HienDai,
+        DangUnicode::Nfc,
+        ChinhSachLuaChon::TuNhien,
+    );
+    let nfd = go_with(
+        "tieengs",
+        KieuTelex::CanBang,
+        QuyTacDatDau::HienDai,
+        DangUnicode::Nfd,
+        ChinhSachLuaChon::TuNhien,
+    );
     assert_eq!(nfc.nfc().collect::<String>(), nfc, "NFC idempotent");
     assert_eq!(nfd.nfd().collect::<String>(), nfd, "NFD idempotent");
 }
@@ -197,7 +287,10 @@ fn loai_am_tiet_viet() {
     for c in "tieengs".chars() {
         phien.them_ky_tu(c);
     }
-    assert_eq!(phien.ban_chup().loai_noi_dung(), LoaiNoiDung::AmTietTiengViet);
+    assert_eq!(
+        phien.ban_chup().loai_noi_dung(),
+        LoaiNoiDung::AmTietTiengViet
+    );
 }
 
 /// Chỉnh sửa giữa âm tiết: `tieengs` → về giữa → chèn → xóa → phục hồi.

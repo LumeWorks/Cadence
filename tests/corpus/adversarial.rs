@@ -85,7 +85,11 @@ fn _128_combining_marks() {
     }
     let bc = p.ban_chup();
     // Toàn bộ là một grapheme (base + 128 combining).
-    assert_eq!(bc.noi_dung().graphemes(true).count(), 1, "combining storm mot grapheme");
+    assert_eq!(
+        bc.noi_dung().graphemes(true).count(),
+        1,
+        "combining storm mot grapheme"
+    );
     // Byte index là boundary.
     assert!(bc.noi_dung().is_char_boundary(bc.con_tro().chi_so_byte()));
 }
@@ -95,12 +99,26 @@ fn _128_combining_marks() {
 fn emoji_zwj_dai() {
     let mut p = phien();
     // 👨‍👩‍👧‍👦‍👧 = 5 emoji + 4 ZWJ.
-    let seq = ['\u{1F468}', '\u{200D}', '\u{1F469}', '\u{200D}', '\u{1F467}', '\u{200D}', '\u{1F466}', '\u{200D}', '\u{1F467}'];
+    let seq = [
+        '\u{1F468}',
+        '\u{200D}',
+        '\u{1F469}',
+        '\u{200D}',
+        '\u{1F467}',
+        '\u{200D}',
+        '\u{1F466}',
+        '\u{200D}',
+        '\u{1F467}',
+    ];
     for c in seq {
         p.them_ky_tu(c);
     }
     let bc = p.ban_chup();
-    assert_eq!(bc.noi_dung().graphemes(true).count(), 1, "ZWJ dai mot grapheme");
+    assert_eq!(
+        bc.noi_dung().graphemes(true).count(),
+        1,
+        "ZWJ dai mot grapheme"
+    );
 }
 
 /// Markdown fence chưa đóng - không treo, content Telex nếu hợp lệ.
@@ -158,7 +176,10 @@ fn nhieu_namespace() {
 fn nhieu_scheme() {
     let mut p = phien();
     nhap(&mut p, "https://a.com http://b.com ftp://c.com");
-    assert_eq!(p.ban_chup().noi_dung(), "https://a.com http://b.com ftp://c.com");
+    assert_eq!(
+        p.ban_chup().noi_dung(),
+        "https://a.com http://b.com ftp://c.com"
+    );
 }
 
 /// Nhiều `@`.
@@ -257,7 +278,9 @@ fn vuot_gioi_han_khong_sua_state() {
 #[test]
 fn moi_char_bmp_khong_panic() {
     let mut p = phien();
-    for cp in [0u32, 1, 0x20, 0x7F, 0xA0, 0x100, 0x1B0, 0x1EBF, 0x2028, 0x2029, 0x2060, 0xFE0F, 0x10FFFF] {
+    for cp in [
+        0u32, 1, 0x20, 0x7F, 0xA0, 0x100, 0x1B0, 0x1EBF, 0x2028, 0x2029, 0x2060, 0xFE0F, 0x10FFFF,
+    ] {
         if let Some(c) = char::from_u32(cp) {
             p.them_ky_tu(c);
             let bc = p.ban_chup();

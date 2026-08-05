@@ -19,7 +19,13 @@ fn go(raw: &str) -> String {
 #[test]
 fn moi_cap_hinh_chu() {
     let cases = [
-        ("aa", "â"), ("aw", "ă"), ("ee", "ê"), ("oo", "ô"), ("ow", "ơ"), ("uw", "ư"), ("dd", "đ"),
+        ("aa", "â"),
+        ("aw", "ă"),
+        ("ee", "ê"),
+        ("oo", "ô"),
+        ("ow", "ơ"),
+        ("uw", "ư"),
+        ("dd", "đ"),
     ];
     for (raw, exp) in cases {
         assert_eq!(go(raw), exp, "{raw}");
@@ -40,8 +46,17 @@ fn modifier_khong_hop_le_giu_nguyen() {
 #[test]
 fn hinh_chu_hoa() {
     let cases = [
-        ("AA", "Â"), ("AW", "Ă"), ("EE", "Ê"), ("OO", "Ô"), ("OW", "Ơ"), ("UW", "Ư"), ("DD", "Đ"),
-        ("Aa", "Â"), ("aA", "â"), ("Dd", "Đ"), ("dD", "đ"),
+        ("AA", "Â"),
+        ("AW", "Ă"),
+        ("EE", "Ê"),
+        ("OO", "Ô"),
+        ("OW", "Ơ"),
+        ("UW", "Ư"),
+        ("DD", "Đ"),
+        ("Aa", "Â"),
+        ("aA", "â"),
+        ("Dd", "Đ"),
+        ("dD", "đ"),
     ];
     for (raw, exp) in cases {
         assert_eq!(go(raw), exp, "{raw}");
@@ -60,7 +75,15 @@ fn uo_w_thanh_uo_horn() {
 /// Escape hình chữ: lặp modifier → hoàn tác, giữ raw.
 #[test]
 fn escape_hinh_chu_lap_modifier() {
-    let cases = [("aaa", "aa"), ("aww", "aw"), ("eee", "ee"), ("ooo", "oo"), ("oww", "ow"), ("uww", "uw"), ("ddd", "dd")];
+    let cases = [
+        ("aaa", "aa"),
+        ("aww", "aw"),
+        ("eee", "ee"),
+        ("ooo", "oo"),
+        ("oww", "ow"),
+        ("uww", "uw"),
+        ("ddd", "dd"),
+    ];
     for (raw, exp) in cases {
         assert_eq!(go(raw), exp, "{raw}");
     }

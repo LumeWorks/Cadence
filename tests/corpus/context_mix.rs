@@ -33,8 +33,14 @@ fn code_tron_tieng_viet() {
 /// URL cạnh tiếng Việt.
 #[test]
 fn url_canh_tieng_viet() {
-    assert_eq!(go("xem https://example.com nhé"), "xem https://example.com nhé");
-    assert_eq!(go("gửi cho name@example.com đi"), "gửi cho name@example.com đi");
+    assert_eq!(
+        go("xem https://example.com nhé"),
+        "xem https://example.com nhé"
+    );
+    assert_eq!(
+        go("gửi cho name@example.com đi"),
+        "gửi cho name@example.com đi"
+    );
 }
 
 /// Code fence + tiếng Việt bên trong.

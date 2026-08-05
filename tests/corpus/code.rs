@@ -46,8 +46,15 @@ fn them_ky_tu_bien_doi_tieng_anh_giong_viet() {
 #[test]
 fn identifier_case_raw() {
     let cases = [
-        "snake_case", "camelCase", "PascalCase", "SCREAMING_SNAKE_CASE",
-        "HTTPServer", "user_id", "userName", "MyClass", "CONST_VALUE",
+        "snake_case",
+        "camelCase",
+        "PascalCase",
+        "SCREAMING_SNAKE_CASE",
+        "HTTPServer",
+        "user_id",
+        "userName",
+        "MyClass",
+        "CONST_VALUE",
     ];
     for raw in cases {
         assert_eq!(go_raw(raw), raw, "{raw}");
@@ -68,12 +75,45 @@ fn identifier_raw_via_them_ky_tu() {
 #[test]
 fn keyword_nhieu_ngo_ngu_raw() {
     let cases = [
-        "fn", "let", "mut", "struct", "impl", "pub", "use", "match",
-        "function", "return", "const", "class", "extends", "import",
-        "def", "lambda", "nil", "func", "package", "interface", "type",
-        "select", "go", "chan", "defer", "switch", "case",
-        "public", "static", "void", "int", "char", "if", "else", "while",
-        "begin", "end", "do", "then",
+        "fn",
+        "let",
+        "mut",
+        "struct",
+        "impl",
+        "pub",
+        "use",
+        "match",
+        "function",
+        "return",
+        "const",
+        "class",
+        "extends",
+        "import",
+        "def",
+        "lambda",
+        "nil",
+        "func",
+        "package",
+        "interface",
+        "type",
+        "select",
+        "go",
+        "chan",
+        "defer",
+        "switch",
+        "case",
+        "public",
+        "static",
+        "void",
+        "int",
+        "char",
+        "if",
+        "else",
+        "while",
+        "begin",
+        "end",
+        "do",
+        "then",
     ];
     for raw in cases {
         assert_eq!(go_raw(raw), raw, "keyword {raw}");

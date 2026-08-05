@@ -69,7 +69,10 @@ fn ip_port() {
 /// UUID/git SHA/checksum/version/date → raw.
 #[test]
 fn uuid_sha_version_date() {
-    assert_eq!(go("550e8400-e29b-41d4-a716-446655440000"), "550e8400-e29b-41d4-a716-446655440000");
+    assert_eq!(
+        go("550e8400-e29b-41d4-a716-446655440000"),
+        "550e8400-e29b-41d4-a716-446655440000"
+    );
     assert_eq!(go("c9868e1"), "c9868e1");
     assert_eq!(go("deadbeefcafe"), "deadbeefcafe");
     assert_eq!(go("v1.2.3"), "v1.2.3");
@@ -100,7 +103,10 @@ fn file_path() {
 fn package_coordinate() {
     assert_eq!(go("cadence-ime 0.1.0"), "cadence-ime 0.1.0");
     assert_eq!(go("serde = \"1\""), "serde = \"1\"");
-    assert_eq!(go("unicode-segmentation = \"1\""), "unicode-segmentation = \"1\"");
+    assert_eq!(
+        go("unicode-segmentation = \"1\""),
+        "unicode-segmentation = \"1\""
+    );
 }
 
 /// URL raw trong mọi chính sách (bất biến).

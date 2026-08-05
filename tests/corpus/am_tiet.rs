@@ -28,8 +28,8 @@ fn loai(raw: &str) -> LoaiNoiDung {
 #[test]
 fn onset_hop_le_raw() {
     let onsets = [
-        "b", "c", "d", "đ", "g", "h", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "x",
-        "ch", "gh", "gi", "kh", "ng", "ngh", "nh", "ph", "qu", "th", "tr",
+        "b", "c", "d", "đ", "g", "h", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "x", "ch",
+        "gh", "gi", "kh", "ng", "ngh", "nh", "ph", "qu", "th", "tr",
     ];
     for o in onsets {
         let raw = format!("{o}a");

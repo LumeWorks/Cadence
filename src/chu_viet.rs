@@ -167,3 +167,139 @@ pub(crate) fn chu_goc_tu_ky_tu(c: char) -> ChuGoc {
         other => ChuGoc::PhuAm(other),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// chu_goc_tu_ky_tu: mỗi nguyên âm (thường + hoa) → đúng ChuGoc.
+    #[test]
+    fn chu_goc_tu_ky_tu_nguyen_am() {
+        let cases = [
+            ('a', ChuGoc::A),
+            ('A', ChuGoc::A),
+            ('e', ChuGoc::E),
+            ('E', ChuGoc::E),
+            ('i', ChuGoc::I),
+            ('I', ChuGoc::I),
+            ('o', ChuGoc::O),
+            ('O', ChuGoc::O),
+            ('u', ChuGoc::U),
+            ('U', ChuGoc::U),
+            ('y', ChuGoc::Y),
+            ('Y', ChuGoc::Y),
+            ('d', ChuGoc::D),
+            ('D', ChuGoc::D),
+        ];
+        for (c, exp) in cases {
+            assert_eq!(chu_goc_tu_ky_tu(c), exp, "chu_goc_tu_ky_tu({c:?}) sai");
+        }
+    }
+
+    /// chu_goc_tu_ky_tu: phụ âm → PhuAm giữ ký tự thường.
+    #[test]
+    fn chu_goc_tu_ky_tu_phu_am() {
+        assert_eq!(chu_goc_tu_ky_tu('b'), ChuGoc::PhuAm('b'));
+        assert_eq!(chu_goc_tu_ky_tu('B'), ChuGoc::PhuAm('b'));
+        assert_eq!(chu_goc_tu_ky_tu('c'), ChuGoc::PhuAm('c'));
+        assert_eq!(chu_goc_tu_ky_tu('z'), ChuGoc::PhuAm('z'));
+    }
+
+    /// ChuGoc::la_nguyen_am: true cho 6 nguyên âm, false cho D và PhuAm.
+    #[test]
+    fn chu_goc_la_nguyen_am() {
+        assert!(ChuGoc::A.la_nguyen_am());
+        assert!(ChuGoc::E.la_nguyen_am());
+        assert!(ChuGoc::I.la_nguyen_am());
+        assert!(ChuGoc::O.la_nguyen_am());
+        assert!(ChuGoc::U.la_nguyen_am());
+        assert!(ChuGoc::Y.la_nguyen_am());
+        assert!(!ChuGoc::D.la_nguyen_am());
+        assert!(!ChuGoc::PhuAm('b').la_nguyen_am());
+    }
+
+    /// ChuGoc::ky_tu_thuong: trả ký tự thường gốc.
+    #[test]
+    fn chu_goc_ky_tu_thuong() {
+        assert_eq!(ChuGoc::A.ky_tu_thuong(), 'a');
+        assert_eq!(ChuGoc::E.ky_tu_thuong(), 'e');
+        assert_eq!(ChuGoc::I.ky_tu_thuong(), 'i');
+        assert_eq!(ChuGoc::O.ky_tu_thuong(), 'o');
+        assert_eq!(ChuGoc::U.ky_tu_thuong(), 'u');
+        assert_eq!(ChuGoc::Y.ky_tu_thuong(), 'y');
+        assert_eq!(ChuGoc::D.ky_tu_thuong(), 'd');
+        assert_eq!(ChuGoc::PhuAm('B').ky_tu_thuong(), 'b');
+        assert_eq!(ChuGoc::PhuAm('n').ky_tu_thuong(), 'n');
+    }
+
+    /// KieuHoa::tu_ky_tu: ASCII hoa → Hoa, thường → Thuong.
+    #[test]
+    fn kieu_hoa_tu_ky_tu() {
+        assert_eq!(KieuHoa::tu_ky_tu('A'), KieuHoa::Hoa);
+        assert_eq!(KieuHoa::tu_ky_tu('Z'), KieuHoa::Hoa);
+        assert_eq!(KieuHoa::tu_ky_tu('a'), KieuHoa::Thuong);
+        assert_eq!(KieuHoa::tu_ky_tu('z'), KieuHoa::Thuong);
+        // Non-ASCII không phải ASCII uppercase → Thuong.
+        assert_eq!(KieuHoa::tu_ky_tu('đ'), KieuHoa::Thuong);
+    }
+
+    /// KieuHoa::ap_dung: Thuong giữ nguyên, Hoa uppercase.
+    #[test]
+    fn kieu_hoa_ap_dung() {
+        assert_eq!(KieuHoa::Thuong.ap_dung('a'), 'a');
+        assert_eq!(KieuHoa::Thuong.ap_dung('Đ'), 'Đ');
+        assert_eq!(KieuHoa::Hoa.ap_dung('a'), 'A');
+        assert_eq!(KieuHoa::Hoa.ap_dung('e'), 'E');
+        // đ → Đ (Unicode uppercase hỗ trợ Vietnamese).
+        assert_eq!(KieuHoa::Hoa.ap_dung('đ'), 'Đ');
+    }
+
+    /// ChuCaiViet::thuong: tạo chữ thường không dấu.
+    #[test]
+    fn chu_cai_viet_thuong() {
+        let chu = ChuCaiViet::thuong('a');
+        assert_eq!(chu.chu_goc, ChuGoc::A);
+        assert_eq!(chu.dau_chu, DauChu::Khong);
+        assert_eq!(chu.dau_thanh, DauThanh::Khong);
+        assert_eq!(chu.kieu_hoa, KieuHoa::Thuong);
+
+        let chu_hoa = ChuCaiViet::thuong('A');
+        assert_eq!(chu_hoa.kieu_hoa, KieuHoa::Hoa);
+        assert_eq!(chu_hoa.chu_goc, ChuGoc::A);
+
+        // Phụ âm.
+        let chu_ph = ChuCaiViet::thuong('b');
+        assert_eq!(chu_ph.chu_goc, ChuGoc::PhuAm('b'));
+    }
+
+    /// DauChu có 5 biến thể, DauThanh có 6 biến thể — kiểm tra tất cả phân biệt.
+    #[test]
+    fn dau_chu_va_dau_thanh_phan_biet() {
+        let dau_chu = [
+            DauChu::Khong,
+            DauChu::Trang,
+            DauChu::Mu,
+            DauChu::Moc,
+            DauChu::Gach,
+        ];
+        for (i, &a) in dau_chu.iter().enumerate() {
+            for &b in dau_chu.iter().skip(i + 1) {
+                assert_ne!(a, b, "DauChu trùng");
+            }
+        }
+
+        let dau_thanh = [
+            DauThanh::Khong,
+            DauThanh::Sac,
+            DauThanh::Huyen,
+            DauThanh::Hoi,
+            DauThanh::Nga,
+            DauThanh::Nang,
+        ];
+        for (i, &a) in dau_thanh.iter().enumerate() {
+            for &b in dau_thanh.iter().skip(i + 1) {
+                assert_ne!(a, b, "DauThanh trùng");
+            }
+        }
+    }
+}

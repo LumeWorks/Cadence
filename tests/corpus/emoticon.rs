@@ -19,7 +19,9 @@ fn go(raw: &str) -> String {
 /// Emoticon mặt → raw.
 #[test]
 fn emoticon_mat_raw() {
-    let cases = [":)", ":(", ":D", ":P", ":v", ":3", ";)", "^^", "=)", ":/", ":>", ":<"];
+    let cases = [
+        ":)", ":(", ":D", ":P", ":v", ":3", ";)", "^^", "=)", ":/", ":>", ":<",
+    ];
     for raw in cases {
         assert_eq!(go(raw), raw, "emoticon {raw}");
     }
@@ -65,18 +67,32 @@ fn emoji_grapheme_dung() {
 
     // Emoji ZWJ sequence: 👨‍👩‍👧 là một grapheme.
     let mut phien = bo_go.tao_phien();
-    for c in ['\u{1F468}', '\u{200D}', '\u{1F469}', '\u{200D}', '\u{1F467}'] {
+    for c in [
+        '\u{1F468}',
+        '\u{200D}',
+        '\u{1F469}',
+        '\u{200D}',
+        '\u{1F467}',
+    ] {
         phien.them_ky_tu(c);
     }
     let bc = phien.ban_chup();
-    assert_eq!(bc.noi_dung().graphemes(true).count(), 1, "ZWJ sequence mot grapheme");
+    assert_eq!(
+        bc.noi_dung().graphemes(true).count(),
+        1,
+        "ZWJ sequence mot grapheme"
+    );
 
     // Cờ (regional indicator pair) - một grapheme.
     let mut phien = bo_go.tao_phien();
     phien.them_ky_tu('\u{1F1FB}'); // V
     phien.them_ky_tu('\u{1F1F3}'); // N
     let bc = phien.ban_chup();
-    assert_eq!(bc.noi_dung().graphemes(true).count(), 1, "co VN mot grapheme");
+    assert_eq!(
+        bc.noi_dung().graphemes(true).count(),
+        1,
+        "co VN mot grapheme"
+    );
 }
 
 /// Emoji skin tone ( modifiers) → grapheme đúng.
@@ -88,7 +104,11 @@ fn emoji_skin_tone() {
     phien.them_ky_tu('\u{1F44D}');
     phien.them_ky_tu('\u{1F3FB}');
     let bc = phien.ban_chup();
-    assert_eq!(bc.noi_dung().graphemes(true).count(), 1, "skin tone mot grapheme");
+    assert_eq!(
+        bc.noi_dung().graphemes(true).count(),
+        1,
+        "skin tone mot grapheme"
+    );
     // Raw giữ nguyên.
     assert_eq!(bc.noi_dung_goc(), "\u{1F44D}\u{1F3FB}");
 }
