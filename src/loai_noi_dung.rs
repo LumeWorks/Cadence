@@ -5,17 +5,21 @@
 
 /// Loại nội dung mà snapshot đang giữ.
 ///
-/// Phase 1 chỉ có hai trạng thái: rỗng và nguyên bản. Phase 2 sẽ thêm
-/// trạng thái Telex khi có hành vi thật.
+/// Phase 2 thêm trạng thái Telex và âm tiết tiếng Việt.
 ///
 /// Có derive serde khi bật feature `serde` để host có thể lưu/phân loại
 /// loại nội dung; đây không phải snapshot nên không vi phạm chính sách
-/// không serialize snapshot trong Phase 1.
+/// không serialize snapshot.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum LoaiNoiDung {
     /// Phiên rỗng, chưa có thao tác nào.
     Trong,
-    /// Nội dung nguyên bản người dùng nhập, chưa biến đổi.
+    /// Nội dung nguyên bản người dùng nhập, chưa biến đổi (output bằng raw).
     NguyenBan,
+    /// Có biến đổi Telex, nhưng toàn đoạn chưa được xác nhận là một âm tiết
+    /// hoàn chỉnh.
+    BienDoiTelex,
+    /// Đoạn hiện tại tạo thành một âm tiết tiếng Việt hợp lệ.
+    AmTietTiengViet,
 }
