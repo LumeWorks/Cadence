@@ -39,8 +39,9 @@ cargo bench
 
 * **Mỗi bug phải có regression test.** Sửa lỗi thì thêm test chứng minh lỗi đã hết.
 * **Không thêm dependency tùy tiện.** Mọi dependency phải có mục đích rõ và được
-  ghi trong `docs/README.md` (dependency policy). Phase 1 chỉ dùng
-  `unicode-segmentation` (runtime) và `proptest`/`criterion` (dev).
+  ghi trong `docs/README.md` (dependency policy). Phase 1 dùng
+  `unicode-segmentation` (runtime) và `proptest`/`criterion` (dev). Phase 2 thêm
+  `unicode-normalization` (runtime, no_std compatible).
 * **Không thêm `unsafe`.** `unsafe_code` bị `forbid`.
 * **Không triển khai các thứ ngoài phạm vi core** (FFI, GUI, IPC, network, thread,
   async runtime, nhận diện ứng dụng) — đó là vai trò của LCand/WCand.

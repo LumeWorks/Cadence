@@ -4,9 +4,12 @@ Cadence — Gõ mọi thứ bạn cần.
 
 Cadence là lõi gõ tiếng Việt thế hệ mới viết bằng Rust, kiến trúc hiện đại và an toàn, có thể nhúng vào nhiều môi trường (Linux, Windows, mobile, trình soạn thảo, công cụ terminal, dự án Rust khác, binding FFI).
 
-## Trạng thái Phase 1
+## Trạng thái Phase 2
 
-Giai đoạn hiện tại chỉ xây nền móng bất biến. Cadence nhận và giữ nguyên mọi ký tự người dùng nhập, duy trì lịch sử thao tác không phá hủy, hỗ trợ con trỏ trong đoạn đang soạn, thêm/xóa/di chuyển/commit/reset. **Telex chưa được triển khai.** Mọi ký tự được render nguyên bản.
+Cadence hiện có Telex engine đầy đủ: biến đổi hình chữ (â, ă, ê, ô, ơ, ư, đ), dấu
+thanh (sắc, huyền, hỏi, ngã, nặng), escape (lặp phím modifier), phân tích âm tiết
+để lựa chọn raw/Telex, và Unicode NFC/NFD output. Lịch sử thao tác raw là nguồn
+sự thật; `noi_dung_goc()` trả byte-for-byte raw.
 
 ## Phạm vi của core
 
@@ -16,8 +19,11 @@ Cadence chỉ là lõi xử lý nhập liệu thuần Rust.
 
 * Quản lý phiên soạn thảo.
 * Lịch sử thao tác không phá hủy.
+* Telex engine: hình chữ, dấu thanh, escape.
+* Phân tích âm tiết và lựa chọn raw/Telex.
 * Snapshot văn bản trung lập nền tảng.
 * Vị trí con trỏ theo byte, UTF-16 và grapheme.
+* Unicode NFC/NFD output.
 * Hạn chế kích thước phiên để bảo vệ ứng dụng host.
 
 ### Những thứ KHÔNG thuộc Cadence
@@ -43,15 +49,18 @@ use cadence::{BoGo, CauHinh, KetQuaXuLy};
 let bo_go = BoGo::new(CauHinh::mac_dinh()).expect("cau hinh mac dinh luon hop le");
 let mut phien = bo_go.tao_phien();
 
-phien.them_ky_tu('a');
-phien.them_ky_tu('b');
-phien.them_ky_tu('c');
+// Telex: gõ "tieengs" → "tiếng"
+for c in "tieengs".chars() {
+    phien.them_ky_tu(c);
+}
+assert_eq!(phien.ban_chup().noi_dung(), "tiếng");
 
-let ban_chup = phien.ban_chup();
-assert_eq!(ban_chup.noi_dung(), "abc");
+// Raw history là nguồn sự thật
+assert_eq!(phien.ban_chup().noi_dung_goc(), "tieengs");
 
+// Commit
 if let KetQuaXuLy::ChapNhan { noi_dung } = phien.chap_nhan() {
-    assert_eq!(noi_dung, "abc");
+    assert_eq!(noi_dung, "tiếng");
 }
 ```
 

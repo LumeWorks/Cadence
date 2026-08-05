@@ -126,6 +126,86 @@ fn replay_token_128(c: &mut Criterion) {
     });
 }
 
+/// Telex shape transform: gõ `dduwowngf` → `đường`.
+fn telex_shape_transform(c: &mut Criterion) {
+    c.bench_function("telex_shape_transform", |b| {
+        b.iter_batched(
+            || tao_phien(4096),
+            |mut phien| {
+                for c in "dduwowngf".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// Telex tone mark: gõ `tieengs` → `tiếng`.
+fn telex_tone_mark(c: &mut Criterion) {
+    c.bench_function("telex_tone_mark", |b| {
+        b.iter_batched(
+            || tao_phien(4096),
+            |mut phien| {
+                for c in "tieengs".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// Telex escape: gõ `aww` → `aw`.
+fn telex_escape(c: &mut Criterion) {
+    c.bench_function("telex_escape", |b| {
+        b.iter_batched(
+            || tao_phien(4096),
+            |mut phien| {
+                for c in "aww".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// Telex âm tiết dài 20 ký tự: build pipeline đầy đủ.
+fn telex_am_tiet_dai(c: &mut Criterion) {
+    c.bench_function("telex_am_tiet_dai", |b| {
+        b.iter_batched(
+            || tao_phien(4096),
+            |mut phien| {
+                for c in "nguyenthithuydung".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// Telex `nguowif` → `người`: triphthong + tone placement.
+fn telex_nguoi(c: &mut Criterion) {
+    c.bench_function("telex_nguoi", |b| {
+        b.iter_batched(
+            || tao_phien(4096),
+            |mut phien| {
+                for c in "nguowif".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
 criterion_group!(
     benches,
     them_ascii_token_ngan,
@@ -134,5 +214,10 @@ criterion_group!(
     xoa_lui,
     replay_token_16,
     replay_token_128,
+    telex_shape_transform,
+    telex_tone_mark,
+    telex_escape,
+    telex_am_tiet_dai,
+    telex_nguoi,
 );
 criterion_main!(benches);
