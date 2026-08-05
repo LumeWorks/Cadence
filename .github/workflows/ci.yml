@@ -29,6 +29,7 @@ jobs:
         with:
           components: clippy
       - run: cargo clippy --all-targets --all-features -- -D warnings
+      - run: cargo clippy --all-targets --no-default-features -- -D warnings
 
   test:
     name: test (${{ matrix.os }}, ${{ matrix.toolchain }})
@@ -47,10 +48,16 @@ jobs:
         run: cargo test --all-features
       - name: Test no default features
         run: cargo test --no-default-features
+      - name: Test serde feature
+        run: cargo test --features serde
+      - name: Test trace feature
+        run: cargo test --features trace
       - name: Check release
         run: cargo check --release
       - name: Check release no default features
         run: cargo check --release --no-default-features
+      - name: Check release no default features with serde and trace
+        run: cargo check --release --no-default-features --features serde,trace
 
   doc:
     name: rustdoc

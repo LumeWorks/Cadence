@@ -1,5 +1,65 @@
 # CHANGELOG
 
+## [Unreleased] - Phase 4
+
+Giai đoạn này ổn định và kiểm tra cho phát hành `0.1.0`: audit API, tài liệu
+bất biến, mô hình bảo mật, chính sách MSRV, cargo-deny config, rule matrix
+tests, editing/Unicode matrix tests, property/serde tests, soak tests, và
+sửa một bug cursor.
+
+### Thêm
+
+- **Tài liệu Phase 4**: baseline audit (`PHASE3_BASELINE.md`), bảng bất biến
+  liên kết test (`INVARIANTS.md`), public API inventory (`api/public-api-0.1.0.md`),
+  chính sách ổn định API (`API_STABILITY.md`), mô hình bảo mật (`SECURITY_MODEL.md`),
+  chính sách MSRV (`MSRV.md`), quyền riêng tư trace (`TRACE_PRIVACY.md`),
+  chính sách dependency (`DEPENDENCIES.md`).
+- **cargo-deny config** (`deny.toml`): license allowlist, ban advisories,
+  warn multiple-versions.
+- **Contract tests** (`tests/contract.rs`): compile-time Send/Sync/Clone/Static
+  cho mọi public type + runtime thread smoke tests.
+- **Corpus Phase 4** (`tests/corpus/`): 14 module, 120 test covering tiếng
+  Việt, hình chữ, dấu thanh, escape, âm tiết, code, command, URL/email/path,
+  teencode, emoticon, Unicode, context mix, editing, adversarial.
+- **Rule matrix unit tests** (`src/am_tiet.rs`, `chu_viet.rs`, `render.rs`,
+  `telex.rs`): 36 test tự kiểm tra bảng nội bộ (onset/coda shadow, tone key
+  mapping, NFC round-trip, shape mapping).
+- **Editing matrix tests** (`tests/corpus/editing.rs`): 7 matrix tests (mỗi
+  thao tác × mỗi vị trí) + 4 backspace+retype + 2 delete-forward trên Telex.
+- **NFC/NFD equivalence matrix** (`tests/corpus/unicode.rs`): 35 tổ hợp
+  shape × tone canonical equivalent, grapheme count matrix, NFD cursor
+  movement vào grapheme phân rã.
+- **Property tests** (`tests/property.rs`): 8 property mới (navigation không
+  đổi nội dung, cursor round-trip, boundary KhongDoi, loai_noi_dung ổn định,
+  chap_nhan trả đúng, hai phiên cùng loai, xoa boundary KhongDoi).
+- **Serde tests** (`tests/serde.rs`): 4 type derive tests + 5 round-trip
+  tests (serde_json serialize→deserialize→equals).
+- **Regression tests** (`tests/regression.rs`): 3 regression cho bug
+  `di_phai_raw` ở cuối lịch sử.
+- **Soak tests** (`tests/soak.rs`): 10 test chịu tải dài (1000 ký tự,
+  navigation liên tục, chen/xóa lặp, mọi tổ hợp cấu hình, emoji+combining,
+  giới hạn thấp, xóa đến rỗng).
+- **Dev-dependency**: `serde_json` cho round-trip serde tests.
+- 650 tests (34 test files) across all feature combinations.
+
+### Sửa
+
+- **Bug `di_phai_raw` ở cuối lịch sử**: khi raw cuối là tone key (không
+  navigable), `di_phai` trả `CapNhat` sai thay vì `KhongDoi`. Nguyên nhân:
+  `snap_raw` snap về navigable gần nhất, trả snapped value ≠ r, khiến
+  caller thấy `moi != r`. Fix: trả `r` gốc (không snap) khi ở hoặc vượt
+  navigable cuối.
+
+### Bất biến Phase 4
+
+- `di_phai` ở cuối luôn `KhongDoi`; `di_trai` ở đầu luôn `KhongDoi`.
+- `xoa_lui` ở đầu luôn `KhongDoi`; `xoa_phia_truoc` ở cuối luôn `KhongDoi`.
+- Navigation không thay đổi nội dung (raw và rendered).
+- Mọi tổ hợp cấu hình (2×2×2×3=24) engine ổn định.
+- NFC/NFD canonical equivalent cho mọi shape × tone.
+- Serde round-trip cho mọi public data type.
+- 1000 ký tự Telex liên tục: không panic, cursor hợp lệ.
+
 ## [Unreleased] - Phase 3
 
 Giai đoạn này triển khai triết lý "Gõ mọi thứ bạn cần": phân đoạn lịch sử,
