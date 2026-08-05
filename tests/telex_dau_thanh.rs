@@ -147,14 +147,14 @@ fn asj_thay_dau_thanh_nang() {
 // --- Dấu thanh uppercase ---
 
 #[test]
-fn aS_thanh_a_sac() {
+fn a_hoa_s_thanh_a_sac() {
     let mut phien = tao_phien();
     nhap(&mut phien, "aS");
     assert_eq!(phien.ban_chup().noi_dung(), "á");
 }
 
 #[test]
-fn AS_thanh_a_sac_hoa() {
+fn a_hoa_s_hoa_thanh_a_sac_hoa() {
     let mut phien = tao_phien();
     nhap(&mut phien, "AS");
     assert_eq!(phien.ban_chup().noi_dung(), "Á");
