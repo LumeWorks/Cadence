@@ -24,7 +24,7 @@ pub(crate) enum KetQuaLuaChon {
 }
 
 /// Render Telex output thành chuỗi thường (không dấu thanh) để parse.
-fn render_de_tu_don_vi(don_vi: &[DonViRender]) -> String {
+pub(crate) fn render_de_tu_don_vi(don_vi: &[DonViRender]) -> String {
     let mut s = String::new();
     for u in don_vi {
         match &u.noi_dung {

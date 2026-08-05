@@ -15,7 +15,7 @@ use alloc::vec::Vec;
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::cau_hinh::DangUnicode;
+use crate::cau_hinh::{DangUnicode, KieuTelex, QuyTacDatDau};
 use crate::loai_noi_dung::LoaiNoiDung;
 use crate::lua_chon;
 use crate::render;
@@ -35,8 +35,13 @@ pub(crate) struct KetQuaRender {
 }
 
 /// Dựng lại toàn bộ snapshot từ lịch sử thao tác.
-pub(crate) fn xay_lai(thao_tac: &[ThaoTacNhap], dang: DangUnicode) -> KetQuaRender {
-    let ket_qua_telex = crate::telex::xu_ly_doan_chu(thao_tac);
+pub(crate) fn xay_lai(
+    thao_tac: &[ThaoTacNhap],
+    dang: DangUnicode,
+    kieu_telex: KieuTelex,
+    quy_tac: QuyTacDatDau,
+) -> KetQuaRender {
+    let ket_qua_telex = crate::telex::xu_ly_doan_chu(thao_tac, kieu_telex, quy_tac);
     let don_vi = ket_qua_telex.don_vi;
     let co_escape = ket_qua_telex.co_escape;
     let co_escape_hinh_chu = ket_qua_telex.co_escape_hinh_chu;
@@ -75,6 +80,20 @@ pub(crate) fn xay_lai(thao_tac: &[ThaoTacNhap], dang: DangUnicode) -> KetQuaRend
     };
     let navigable = tinh_navigable(&noi_dung, &raw_to_byte);
     let loai_noi_dung = loai_noi_dung_cua(&noi_dung, &noi_dung_goc);
+    // Nâng cấp lên `AmTietTiengViet` nếu output là âm tiết hợp lệ.
+    let loai_noi_dung = if loai_noi_dung == LoaiNoiDung::BienDoiTelex {
+        let base = lua_chon::render_de_tu_don_vi(&don_vi);
+        if matches!(
+            crate::am_tiet::phan_tich_am_tiet(&base),
+            crate::am_tiet::MucHopLe::CoTheTiepTuc
+        ) {
+            LoaiNoiDung::AmTietTiengViet
+        } else {
+            loai_noi_dung
+        }
+    } else {
+        loai_noi_dung
+    };
     KetQuaRender {
         noi_dung,
         raw_to_byte,
