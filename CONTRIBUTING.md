@@ -22,10 +22,14 @@ Cảm ơn bạn quan tâm đến Cadence. Tài liệu này quy ước cách đó
 ```bash
 cargo fmt --check
 cargo clippy --all-targets --all-features -- -D warnings
+cargo clippy --all-targets --no-default-features -- -D warnings
 cargo test --all-features
 cargo test --no-default-features
+cargo test --features serde
+cargo test --features trace
 cargo check --release
 cargo check --release --no-default-features
+cargo check --release --no-default-features --features serde,trace
 cargo doc --all-features --no-deps
 rustup run 1.85 cargo check --all-features
 rustup run 1.85 cargo check --no-default-features
@@ -43,7 +47,8 @@ cargo bench
 * **Không thêm dependency tùy tiện.** Mọi dependency phải có mục đích rõ và được
   ghi trong `docs/README.md` (dependency policy). Phase 1 dùng
   `unicode-segmentation` (runtime) và `proptest`/`criterion` (dev). Phase 2 thêm
-  `unicode-normalization` (runtime, no_std compatible).
+  `unicode-normalization` (runtime, no_std compatible). Phase 4 thêm
+  `serde_json` (dev, round-trip serde tests).
 * **Không thêm `unsafe`.** `unsafe_code` bị `forbid`.
 * **Không triển khai các thứ ngoài phạm vi core** (FFI, GUI, IPC, network, thread,
   async runtime, nhận diện ứng dụng) - đó là vai trò của LCand/WCand.

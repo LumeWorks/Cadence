@@ -108,9 +108,13 @@ Copyright (c) 2026 Lê Hùng Quang Minh.
 ```bash
 cargo fmt --check
 cargo clippy --all-targets --all-features -- -D warnings
+cargo clippy --all-targets --no-default-features -- -D warnings
 cargo test --all-features
 cargo test --no-default-features
+cargo test --features serde
+cargo test --features trace
 cargo check --release
 cargo check --release --no-default-features
+cargo check --release --no-default-features --features serde,trace
 cargo doc --all-features --no-deps
 ```

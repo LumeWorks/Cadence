@@ -73,15 +73,18 @@ Các quyết định kiến trúc quan trọng được ghi tại:
 | Dependency | Loại | Mục đích |
 |---|---|---|
 | `unicode-segmentation` | runtime | Tính grapheme cluster chính xác. Tắt default-features để dùng được no_std. |
+| `unicode-normalization` | runtime | NFC/NFD output canonical equivalence. |
 | `serde` | optional | Derive `Serialize`/`Deserialize` khi bật feature `serde`. |
 | `proptest` | dev | Property test bất biến nền tảng. |
 | `criterion` | dev | Benchmark nền. |
+| `serde_json` | dev | Round-trip serde tests (serialize → deserialize → equals). |
 
 ### Chính sách dependency
 
 * Mỗi dependency phải có mục đích rõ, không thêm regex, async runtime,
   logging framework, parser framework, collection crate hay error framework.
-* Runtime dependency Phase 1 chỉ có `unicode-segmentation`.
+* Runtime dependencies: `unicode-segmentation`, `unicode-normalization`
+  (Phase 2), `serde` (optional).
 * `serde` là optional (`dep:serde`, `default-features = false`,
   `features = ["alloc", "derive"]`) - người dùng bình thường không kéo serde.
 
@@ -97,7 +100,5 @@ phải snapshot và không có ràng buộc validation:
 `CauHinh` **không** derive serde vì `Deserialize` sẽ bỏ qua validation trong
 `dat_gioi_han_thao_tac`, cho phép cấu hình ngoài phạm vi. Phase sau nếu cần
 serialize cấu hình phải viết `Deserialize` tùy chỉnh có validate.
-| `proptest` | dev | Property test bất biến nền tảng. |
-| `criterion` | dev | Benchmark nền. |
 
 Chi tiết chính sách dependency xem `CONTRIBUTING.md`.
