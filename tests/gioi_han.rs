@@ -64,9 +64,7 @@ fn sau_khi_xoa_co_the_them_lai() {
 fn nhieu_phien_co_gioi_han_doc_lap() {
     let bo_go = BoGo::new({
         let mut cau_hinh = CauHinh::mac_dinh();
-        cau_hinh
-            .dat_gioi_han_thao_tac(2)
-            .expect("2 phai hop le");
+        cau_hinh.dat_gioi_han_thao_tac(2).expect("2 phai hop le");
         cau_hinh
     })
     .expect("cau hinh hop le");

@@ -163,7 +163,11 @@ fn byte_index_dung_tai_ranh_gioi_char() {
     let ban_chup = phien.ban_chup();
     // Byte index phải là 3 (ranh giới UTF-8, không nằm giữa code point).
     assert_eq!(ban_chup.con_tro().chi_so_byte(), 3);
-    assert!(ban_chup.noi_dung().is_char_boundary(ban_chup.con_tro().chi_so_byte()));
+    assert!(
+        ban_chup
+            .noi_dung()
+            .is_char_boundary(ban_chup.con_tro().chi_so_byte())
+    );
 }
 
 #[test]
@@ -202,9 +206,11 @@ fn con_tro_khong_nam_giua_utf8_code_point() {
     phien.them_ky_tu('ế');
     let ban_chup = phien.ban_chup();
     // Byte index 0 và 2 đều là ranh giới char của "ế" (2 byte).
-    assert!(ban_chup
-        .noi_dung()
-        .is_char_boundary(ban_chup.con_tro().chi_so_byte()));
+    assert!(
+        ban_chup
+            .noi_dung()
+            .is_char_boundary(ban_chup.con_tro().chi_so_byte())
+    );
 }
 
 #[test]

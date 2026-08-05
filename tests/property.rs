@@ -239,9 +239,7 @@ fn kiem_tra_bat_bien(phien: &PhienGo, mo_hinh: &MoHinh, gioi_han: usize) {
     assert_eq!(con_tro.chi_so_grapheme(), mo_hinh.grapheme_con_tro());
 
     // Byte index phải là ranh giới UTF-8.
-    assert!(ban_chup
-        .noi_dung()
-        .is_char_boundary(con_tro.chi_so_byte()));
+    assert!(ban_chup.noi_dung().is_char_boundary(con_tro.chi_so_byte()));
 
     // Bất biến 10: số thao tác không vượt giới hạn.
     let so_thao_tac = ban_chup.noi_dung_goc().chars().count();

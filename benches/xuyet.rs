@@ -12,7 +12,7 @@
 #![allow(missing_docs)]
 
 use cadence::{BoGo, CauHinh, PhienGo};
-use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
+use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main};
 
 fn tao_phien(gioi_han: usize) -> PhienGo {
     let mut cau_hinh = CauHinh::mac_dinh();
