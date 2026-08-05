@@ -34,7 +34,7 @@ Cadence chỉ là lõi xử lý nhập liệu thuần Rust.
 
 ```toml
 [dependencies]
-cadence = "0.1.0"
+cadence = { package = "cadence-ime", version = "0.1" }
 ```
 
 ```rust

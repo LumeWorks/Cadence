@@ -1,5 +1,5 @@
 [package]
-name = "cadence"
+name = "cadence-ime"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
@@ -8,7 +8,7 @@ description = "A safe and embeddable Vietnamese typing engine"
 readme = "README.md"
 keywords = ["vietnamese", "input", "ime", "telex"]
 categories = ["text-processing", "internationalization"]
-repository = "https://github.com/LumeWorks/Candence"
+repository = "https://github.com/LumeWorks/Cadence"
 
 [lib]
 name = "cadence"
