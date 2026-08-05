@@ -192,8 +192,9 @@ impl PhienGo {
     /// Dựng lại toàn bộ snapshot từ lịch sử thao tác qua pipeline Telex.
     fn xay_lai_ban_chup(&mut self) {
         let ket_qua = anh_xa::xay_lai(&self.lich_su, self.dang_unicode);
+        // Giữ con_tro là raw position thực (không snap) để xoa_lui hoàn tác
+        // đúng thao tác raw gần nhất. Chỉ snap khi tính byte cho snapshot.
         let con_tro_snap = anh_xa::snap_raw(self.con_tro, &ket_qua.navigable);
-        self.con_tro = con_tro_snap;
         let byte = anh_xa::byte_tai(con_tro_snap, &ket_qua.raw_to_byte);
         let noi_dung_goc: String = self.lich_su.iter().map(|t| t.ky_tu).collect();
         self.raw_to_byte = ket_qua.raw_to_byte;
@@ -203,9 +204,10 @@ impl PhienGo {
     }
 
     /// Chỉ cập nhật con trỏ (sau khi di chuyển) mà không replay toàn bộ.
-    /// Tính lại byte offset từ raw_to_byte hiện có.
+    /// Tính lại byte offset từ raw_to_byte hiện có (có snap).
     fn cap_nhat_con_tro(&mut self) {
-        let byte = anh_xa::byte_tai(self.con_tro, &self.raw_to_byte);
+        let con_tro_snap = anh_xa::snap_raw(self.con_tro, &self.navigable);
+        let byte = anh_xa::byte_tai(con_tro_snap, &self.raw_to_byte);
         let noi_dung = String::from(self.ban_chup_hien_tai.noi_dung());
         let noi_dung_goc = String::from(self.ban_chup_hien_tai.noi_dung_goc());
         let loai = self.ban_chup_hien_tai.loai_noi_dung();

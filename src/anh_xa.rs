@@ -69,31 +69,51 @@ fn render_don_vi(u: &DonViRender, dang: DangUnicode) -> String {
     }
 }
 
-/// Tính `raw_to_byte`: ánh xạ raw position → byte offset (snap interior).
+/// Tính `raw_to_byte`: ánh xạ raw position → byte offset.
+///
+/// Vị trí interior của đơn vị snap về ranh giới gần nhất. Vị trí gap (tone
+/// key consumed, không thuộc đơn vị nào) kế thừa byte offset của vị trí
+/// trước nó.
 fn tinh_raw_to_byte(don_vi: &[DonViRender], byte_len: &[usize], n: usize) -> Vec<usize> {
-    let mut raw_to_byte = vec![0usize; n + 1];
+    // Bước 1: đánh dấu byte offset cho ranh giới đơn vị.
+    let mut pos_to_byte: Vec<Option<usize>> = vec![None; n + 1];
     let mut byte_offset = 0usize;
     for (u, &blen) in don_vi.iter().zip(byte_len.iter()) {
-        let start = u.raw_bat_dau;
-        let end = u.raw_ket_thuc;
-        let start_byte = byte_offset;
-        raw_to_byte[start] = start_byte;
+        pos_to_byte[u.raw_bat_dau] = Some(byte_offset);
         byte_offset += blen;
-        let end_byte = byte_offset;
-        raw_to_byte[end] = end_byte;
-        // Vị trí interior (raw giữa start..end) snap về ranh giới gần nhất,
-        // tie → end (tiến) để chèn giữa một grapheme gộp ưu tiên phía sau.
-        for (r, slot) in raw_to_byte.iter_mut().enumerate() {
-            if r <= start || r >= end {
+        pos_to_byte[u.raw_ket_thuc] = Some(byte_offset);
+    }
+
+    // Bước 2: snap interior positions về ranh giới gần nhất.
+    for (u, &blen) in don_vi.iter().zip(byte_len.iter()) {
+        let start_byte = pos_to_byte[u.raw_bat_dau].unwrap_or(0);
+        let end_byte = start_byte + blen;
+        for (r, slot) in pos_to_byte.iter_mut().enumerate() {
+            if r <= u.raw_bat_dau || r >= u.raw_ket_thuc || slot.is_some() {
                 continue;
             }
-            let dist_start = r - start;
-            let dist_end = end - r;
-            *slot = if dist_end < dist_start {
+            let dist_start = r - u.raw_bat_dau;
+            let dist_end = u.raw_ket_thuc - r;
+            *slot = Some(if dist_end < dist_start {
                 end_byte
             } else {
                 start_byte
-            };
+            });
+        }
+    }
+
+    // Bước 3: điền gap (tone key, escape consumed) bằng byte offset trước.
+    let mut raw_to_byte = vec![0usize; n + 1];
+    let mut last_byte = 0usize;
+    for r in 0..=n {
+        match pos_to_byte[r] {
+            Some(b) => {
+                raw_to_byte[r] = b;
+                last_byte = b;
+            }
+            None => {
+                raw_to_byte[r] = last_byte;
+            }
         }
     }
     raw_to_byte
