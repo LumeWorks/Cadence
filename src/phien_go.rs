@@ -88,6 +88,18 @@ impl PhienGo {
         KetQuaXuLy::CapNhat
     }
 
+    /// Xóa thao tác ngay trước con trỏ (backspace). Trả `KhongDoi` nếu
+    /// con trỏ đang ở đầu lịch sử.
+    pub fn xoa_lui(&mut self) -> KetQuaXuLy {
+        if self.con_tro == 0 {
+            return KetQuaXuLy::KhongDoi;
+        }
+        self.lich_su.remove(self.con_tro - 1);
+        self.con_tro -= 1;
+        self.xay_lai_ban_chup();
+        KetQuaXuLy::CapNhat
+    }
+
     /// Chèn một thao tác tại con trỏ, cập nhật con trỏ và dựng lại snapshot.
     fn chen_thao_tac(&mut self, thao_tac: ThaoTacNhap) -> KetQuaXuLy {
         if self.lich_su.len() >= self.gioi_han_thao_tac {
