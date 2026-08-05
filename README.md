@@ -4,12 +4,22 @@ Cadence — Gõ mọi thứ bạn cần.
 
 Cadence là lõi gõ tiếng Việt thế hệ mới viết bằng Rust, kiến trúc hiện đại và an toàn, có thể nhúng vào nhiều môi trường (Linux, Windows, mobile, trình soạn thảo, công cụ terminal, dự án Rust khác, binding FFI).
 
-## Trạng thái Phase 2
+## Trạng thái Phase 3
 
-Cadence hiện có Telex engine đầy đủ: biến đổi hình chữ (â, ă, ê, ô, ơ, ư, đ), dấu
-thanh (sắc, huyền, hỏi, ngã, nặng), escape (lặp phím modifier), phân tích âm tiết
-để lựa chọn raw/Telex, và Unicode NFC/NFD output. Lịch sử thao tác raw là nguồn
-sự thật; `noi_dung_goc()` trả byte-for-byte raw.
+Cadence hiện có Telex engine đầy đủ **và** phân đoạn ngữ cảnh (Phase 3):
+biến đổi hình chữ (â, ă, ê, ô, ơ, ư, đ), dấu thanh (sắc, huyền, hỏi, ngã,
+nặng), escape (lặp phím modifier), phân tích âm tiết để lựa chọn raw/Telex,
+và Unicode NFC/NFD output. Lịch sử thao tác raw là nguồn sự thật;
+`noi_dung_goc()` trả byte-for-byte raw.
+
+Phase 3 thêm triết lý "Gõ mọi thứ bạn cần": lịch sử được chia thành đoạn theo
+loại ký tự, mỗi đoạn quyết định Telex hay raw độc lập. Code, URL, email, đường
+dẫn, namespace `::`, phép gán `=`, emoticon, teencode lặp được nhận diện và
+giữ nguyên bản; tiếng Việt hợp lệ được biến đổi. Không cần bật/tắt bộ gõ khi
+chuyển context trong cùng phiên.
+
+Xem [`docs/rfc/0013-triet-ly-go-moi-thu.md`](docs/rfc/0013-triet-ly-go-moi-thu.md)
+cho triết lý đầy đủ và RFC 0014–0019 cho chi tiết từng phần.
 
 ## Phạm vi của core
 
@@ -21,6 +31,9 @@ Cadence chỉ là lõi xử lý nhập liệu thuần Rust.
 * Lịch sử thao tác không phá hủy.
 * Telex engine: hình chữ, dấu thanh, escape.
 * Phân tích âm tiết và lựa chọn raw/Telex.
+* Phân đoạn và nhận diện ngữ cảnh kỹ thuật (Phase 3).
+* Chính sách lựa chọn `TuNhien`/`UuTienTiengViet`/`UuTienNguyenBan`.
+* Trace quyết định có cấu trúc (feature `trace`).
 * Snapshot văn bản trung lập nền tảng.
 * Vị trí con trỏ theo byte, UTF-16 và grapheme.
 * Unicode NFC/NFD output.
@@ -71,7 +84,7 @@ if let KetQuaXuLy::ChapNhan { noi_dung } = phien.chap_nhan() {
 | `std` | có | Dùng thư viện chuẩn. |
 | `no_std + alloc` | — | Biên dịch cho môi trường không có `std`. |
 | `serde` | — | Derive serde cho một số public data type. |
-| `trace` | — | Dành cho Phase sau, hiện chưa có hành vi. |
+| `trace` | — | Trace quyết định raw/Telex có cấu trúc qua `PhienGo::trace()`. |
 
 ## MSRV
 

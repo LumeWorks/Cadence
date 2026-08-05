@@ -1,6 +1,62 @@
 # CHANGELOG
 
-## [Unreleased] — Phase 2
+## [Unreleased] — Phase 3
+
+Giai đoạn này triển khai triết lý "Gõ mọi thứ bạn cần": phân đoạn lịch sử,
+nhận diện ngữ cảnh kỹ thuật, lựa chọn raw/Telex theo đoạn, chính sách lựa
+chọn, và trace quyết định có cấu trúc.
+
+### Thêm
+
+- **Phân đoạn** (`phan_doan.rs`): chia lịch sử raw thành `Vec<Doan>` theo
+  `LoaiDoan` (Chu/So/KhoangTrang/DauCau/KyThuat/Emoji/NguyenBan). Telex chạy
+  độc lập từng đoạn Chu, không xuyên ranh giới.
+- **Teencode lặp** (`phan_doan::la_teencode_lap`): run 3+ chữ cái doubled-base
+  (`a`/`e`/`o`/`d`) có chữ khác trước → bảo toàn raw (`brooooo`→`brooooo`).
+- **Nhận diện ngữ cảnh** (`ngu_canh.rs`): URL (`://`), email (`@`), đường dẫn
+  (`/`, `~/`, `./`, `X:\`), code span/fence (backtick), namespace `::`,
+  phép gán `=`, emoticon (`=)`, `:D`, `???`, ...). Hai pass: span structure
+  + per-segment adjacency. `KetQuaNhanDien` + `BangChungLuaChon` (13 variants).
+- **Luật raw cục bộ** (`lua_chon.rs`): Rule 0 (2+ dấu thanh→raw), Rule 1
+  (shape + onset sai→raw), giữ Rule 2–5 Phase 2.
+- **Nucleus-glide** (`am_tiet.rs`): 2 nguyên âm đầy không glide → `KhongHopLe`
+  (`ae`→raw, ngăn CASE).
+- **Chính sách lựa chọn** (`ChinhSachLuaChon`): `TuNhien` (mặc định),
+  `UuTienTiengViet` (thông Rule 5), `UuTienNguyenBan`. Getter/setter trên
+  `CauHinh`, wired vào `lua_chon` và `anh_xa::xay_lai`.
+- **Trace API** (`trace.rs`, feature `trace`): `TraceStep` + `TraceKetQua`,
+  `PhienGo::trace()` trả snapshot quyết định per-đoạn. `BangChungLuaChon`
+  public khi trace bật.
+- **RFC 0013–0019**: triết lý, phân đoạn, nhận diện, teencode, chính sách,
+  trace, corpus.
+- **Benchmark Phase 3**: code trộn, URL, namespace, teencode lạp.
+- **Example `go_moi_thu`**: demo trộn code, URL, tiếng Việt, teencode,
+  emoticon, chính sách.
+- 435 tests (29 test files): corpus Phase 3 (43), property Phase 3 (8),
+    chinh_sach_lua_chon (8), trace (6), phan_doan (10), ngu_canh (22), plus
+    Phase 1–2 giữ nguyên.
+
+### Bất biến Phase 3
+
+- Cấu trúc kỹ thuật chắc chắn (URL, email, code fence, `::`, `=`) luôn raw
+  trong mọi chính sách.
+- `them_nguyen_ban` luôn chặn Telex bất kể chính sách.
+- `noi_dung_goc()` giữ byte-for-byte raw.
+- Trace deterministic: cùng cấu hình + history → cùng trace.
+- Trace zero-overhead khi tắt feature.
+
+### DoD acceptance cases (46/46 pass)
+
+`async`, `class`, `struct`, `String`, `user_id`, `userName`, `HTTPServer`,
+`SCREAMING_SNAKE_CASE`, `foo::bar`, `cargo build --release`, `fn main() {}`,
+`let mut buf = String::new();`, `https://example.com`, `http://localhost:3000`,
+`name@example.com`, `~/Documents/Cadence`, `./install.sh`, `C:\Users\Name`,
+`127.0.0.1:8080`, `v1.2.3`, `c9868e1`, UUID, `=))`, `=))))))))))))`, `:v`,
+`???`, `!!!!!!!`, `brooooo`, `vcl`, `ko`, `dc`, `ddm`, `cargo build lỗi rồi =))`,
+`let ten_nguoi_dung = "Minh";`, `đm bug gì lắm thế`, `user_id của m là gì?`,
+`brooooo m đang làm gì đấy???`, `tieengs`, `nguowif`, `dduwowngf`, `AA`, `DD`.
+
+## [Phase 2]
 
 Giai đoạn này triển khai Telex engine đầy đủ: hình chữ, dấu thanh, escape,
 phân tích âm tiết, lựa chọn raw/Telex, và Unicode NFC/NFD output.
