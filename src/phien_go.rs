@@ -68,6 +68,26 @@ impl PhienGo {
         self.chen_thao_tac(ThaoTacNhap::nguyen_ban(ky_tu))
     }
 
+    /// Di chuyển con trỏ sang trái một thao tác. Trả `KhongDoi` nếu đang ở đầu.
+    pub fn di_trai(&mut self) -> KetQuaXuLy {
+        if self.con_tro == 0 {
+            return KetQuaXuLy::KhongDoi;
+        }
+        self.con_tro -= 1;
+        self.xay_lai_ban_chup();
+        KetQuaXuLy::CapNhat
+    }
+
+    /// Di chuyển con trỏ sang phải một thao tác. Trả `KhongDoi` nếu đang ở cuối.
+    pub fn di_phai(&mut self) -> KetQuaXuLy {
+        if self.con_tro >= self.lich_su.len() {
+            return KetQuaXuLy::KhongDoi;
+        }
+        self.con_tro += 1;
+        self.xay_lai_ban_chup();
+        KetQuaXuLy::CapNhat
+    }
+
     /// Chèn một thao tác tại con trỏ, cập nhật con trỏ và dựng lại snapshot.
     fn chen_thao_tac(&mut self, thao_tac: ThaoTacNhap) -> KetQuaXuLy {
         if self.lich_su.len() >= self.gioi_han_thao_tac {
