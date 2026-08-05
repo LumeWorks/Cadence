@@ -19,8 +19,8 @@ pub(crate) enum MucHopLe {
 /// Bảng âm đầu tiếng Việt (onset). Sắp xếp theo độ dài giảm để match
 /// prefix dài trước (vd: `ngh` trước `ng` trước `n`).
 const AM_DAU: &[&str] = &[
-    "ngh", "ng", "nh", "gh", "gi", "kh", "ph", "th", "tr", "qu", "ch", "b", "c", "d", "đ", "g", "h",
-    "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "x",
+    "ngh", "ng", "nh", "gh", "gi", "kh", "ph", "th", "tr", "qu", "ch", "b", "c", "d", "đ", "g",
+    "h", "k", "l", "m", "n", "p", "q", "r", "s", "t", "v", "x",
 ];
 
 /// Bảng âm cuối tiếng Việt (coda). Sắp xếp theo độ dài giảm.

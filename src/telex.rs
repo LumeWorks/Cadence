@@ -123,8 +123,7 @@ fn tim_nguyen_am_chinh(don_vi: &[DonViRender]) -> Option<usize> {
     let cuoi = *cac_nguyen_am.last().unwrap_or(&0);
     if cac_nguyen_am.len() >= 2 {
         if let NoiDungDonVi::Chu(chu) = &don_vi[cuoi].noi_dung {
-            if matches!(chu.chu_goc, ChuGoc::I | ChuGoc::U)
-                && matches!(chu.dau_chu, DauChu::Khong)
+            if matches!(chu.chu_goc, ChuGoc::I | ChuGoc::U) && matches!(chu.dau_chu, DauChu::Khong)
             {
                 return Some(cac_nguyen_am[cac_nguyen_am.len() - 2]);
             }

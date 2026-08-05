@@ -30,12 +30,8 @@ fn render_de_tu_don_vi(don_vi: &[DonViRender]) -> String {
         match &u.noi_dung {
             NoiDungDonVi::Chu(chu) => {
                 // Dùng ký tự thường không dấu thanh để parse âm tiết.
-                let ky_tu = crate::render::nguyen_am_nfc(
-                    chu.chu_goc,
-                    chu.dau_chu,
-                    DauThanh::Khong,
-                )
-                .unwrap_or_else(|| chu.chu_goc.ky_tu_thuong());
+                let ky_tu = crate::render::nguyen_am_nfc(chu.chu_goc, chu.dau_chu, DauThanh::Khong)
+                    .unwrap_or_else(|| chu.chu_goc.ky_tu_thuong());
                 s.push(ky_tu);
             }
             NoiDungDonVi::Chuong(c) => {
@@ -85,9 +81,7 @@ pub(crate) fn lua_chon(
     }
 
     // Rule 4: chỉ có tone transform → parse âm tiết đầy đủ.
-    if co_tone
-        && am_tiet::phan_tich_am_tiet(&output) == am_tiet::MucHopLe::KhongHopLe
-    {
+    if co_tone && am_tiet::phan_tich_am_tiet(&output) == am_tiet::MucHopLe::KhongHopLe {
         return KetQuaLuaChon::NguyenBan;
     }
 

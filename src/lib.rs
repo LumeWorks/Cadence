@@ -8,11 +8,11 @@
 
 extern crate alloc;
 
+pub(crate) mod am_tiet;
+pub(crate) mod anh_xa;
 pub mod ban_chup;
 pub mod bo_go;
 pub mod cau_hinh;
-pub(crate) mod am_tiet;
-pub(crate) mod anh_xa;
 pub(crate) mod chu_viet;
 pub mod ket_qua;
 pub mod loai_noi_dung;
