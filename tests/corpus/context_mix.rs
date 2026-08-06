@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
 //! Corpus trộn context - code + tiếng Việt + URL + chat trong cùng phiên.
-//! Liên kết branch: `phan_doan.rs`, `ngu_canh.rs`, `lua_chon.rs`.
+//! Liên kết branch: `phan_doan.rs`, `ngu_canh.rs`, `kieu_go/lua_chon.rs`.
 
 use cadence::{BoGo, CauHinh};
 

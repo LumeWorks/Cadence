@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
 //! Corpus âm tiết - enumeration mọi âm đầu + âm cuối + nguyên âm.
-//! Liên kết branch: `am_tiet.rs` (bảng onset/coda, parser), `lua_chon.rs`.
+//! Liên kết branch: `kieu_go/am_tiet.rs` (bảng onset/coda, parser), `kieu_go/lua_chon.rs`.
 
 use cadence::{BoGo, CauHinh, LoaiNoiDung};
 

@@ -9,8 +9,8 @@
 use alloc::string::String;
 use alloc::string::ToString;
 
+use super::chu_viet::{ChuCaiViet, ChuGoc, DauChu, DauThanh, KieuHoa};
 use crate::cau_hinh::DangUnicode;
-use crate::chu_viet::{ChuCaiViet, ChuGoc, DauChu, DauThanh, KieuHoa};
 
 /// Trả ký tự NFC (dựng sẵn) của một nguyên âm Việt đầy đủ.
 ///
@@ -235,7 +235,7 @@ fn tu_dau_thanh(c: char) -> DauThanh {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::chu_viet::{ChuGoc, DauChu, DauThanh, KieuHoa};
+    use crate::kieu_go::chu_viet::{ChuGoc, DauChu, DauThanh, KieuHoa};
 
     /// nguyen_am_nfc: mọi tổ hợp (vowel, Khong, Khong) → ký tự thường gốc.
     #[test]

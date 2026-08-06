@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
 //! Corpus escape - enumeration lặp phím modifier.
-//! Liên kết branch: `telex.rs` (escape hình chữ + escape dấu thanh).
+//! Liên kết branch: `kieu_go/telex.rs` (escape hình chữ + escape dấu thanh).
 
 use cadence::{BoGo, CauHinh};
 

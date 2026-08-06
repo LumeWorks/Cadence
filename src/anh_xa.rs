@@ -21,12 +21,12 @@ use alloc::vec::Vec;
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::cau_hinh::{ChinhSachLuaChon, DangUnicode, KieuTelex, QuyTacDatDau};
+use crate::kieu_go::lua_chon;
+use crate::kieu_go::render;
+use crate::kieu_go::telex::{self, DonViRender, NoiDungDonVi};
 use crate::loai_noi_dung::LoaiNoiDung;
-use crate::lua_chon;
 use crate::ngu_canh;
 use crate::phan_doan::{self, Doan, LoaiDoan};
-use crate::render;
-use crate::telex::{self, DonViRender, NoiDungDonVi};
 use crate::thao_tac::ThaoTacNhap;
 
 /// Kết quả của một lần dựng lại snapshot.
@@ -205,7 +205,7 @@ fn render_raw_chu(slice: &[ThaoTacNhap], dang: DangUnicode) -> RenderDoan {
         map.push(chuoi.len());
         let chu = match render::phan_tich_ky_tu(t.ky_tu) {
             Some(c) => c,
-            None => crate::chu_viet::ChuCaiViet::thuong(t.ky_tu),
+            None => crate::kieu_go::chu_viet::ChuCaiViet::thuong(t.ky_tu),
         };
         chuoi.push_str(&render::render_chu(&chu, dang));
     }
@@ -393,8 +393,8 @@ fn loai_noi_dung_chu(chuoi: &str, slice: &[ThaoTacNhap], don_vi: &[DonViRender])
     if loai == LoaiNoiDung::BienDoiTelex {
         let base = lua_chon::render_de_tu_don_vi(don_vi);
         if matches!(
-            crate::am_tiet::phan_tich_am_tiet(&base),
-            crate::am_tiet::MucHopLe::CoTheTiepTuc
+            crate::kieu_go::am_tiet::phan_tich_am_tiet(&base),
+            crate::kieu_go::am_tiet::MucHopLe::CoTheTiepTuc
         ) {
             LoaiNoiDung::AmTietTiengViet
         } else {

@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
 //! Corpus dấu thanh - enumeration mọi phím tone × nguyên âm × quy tắc.
-//! Liên kết branch: `telex.rs::tu_dau_thanh_key`, `tim_nguyen_am_chinh`.
+//! Liên kết branch: `kieu_go/telex.rs::tu_dau_thanh_key`, `tim_nguyen_am_chinh`.
 
 use cadence::{BoGo, CauHinh, QuyTacDatDau};
 

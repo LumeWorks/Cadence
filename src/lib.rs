@@ -8,20 +8,16 @@
 
 extern crate alloc;
 
-pub(crate) mod am_tiet;
 pub(crate) mod anh_xa;
 pub mod ban_chup;
 pub mod bo_go;
 pub mod cau_hinh;
-pub(crate) mod chu_viet;
 pub mod ket_qua;
+pub mod kieu_go;
 pub mod loai_noi_dung;
-pub(crate) mod lua_chon;
 pub(crate) mod ngu_canh;
 pub(crate) mod phan_doan;
 pub mod phien_go;
-pub(crate) mod render;
-pub(crate) mod telex;
 pub(crate) mod thao_tac;
 #[cfg(feature = "trace")]
 pub mod trace;

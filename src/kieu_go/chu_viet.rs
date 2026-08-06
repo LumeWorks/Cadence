@@ -126,7 +126,7 @@ impl KieuHoa {
 /// Một chữ cái Việt đầy đủ: chữ gốc + dấu hình chữ + dấu thanh + kiểu hoa.
 ///
 /// Đây là đơn vị nhỏ nhất của kết quả biến đổi Telex. Provenance (thao tác
-/// raw nào sinh ra đơn vị này) được giữ ở lớp [`DonViRender`](crate::telex)
+/// raw nào sinh ra đơn vị này) được giữ ở lớp [`DonViRender`](crate::kieu_go::telex)
 /// chứ không nằm trong chính `ChuCaiViet`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct ChuCaiViet {

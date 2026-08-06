@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
 //! Corpus teencode - tiếng lóng, chữ lặp, viết tắt. Bảo toàn hơn là sửa.
-//! Liên kết branch: `phan_doan.rs::la_teencode_lap`, `lua_chon.rs`.
+//! Liên kết branch: `phan_doan.rs::la_teencode_lap`, `kieu_go/lua_chon.rs`.
 
 use cadence::{BoGo, CauHinh};
 

@@ -15,10 +15,10 @@
 //! Teencode lặp (3+ chữ cái hình chữ doubled-base có chữ khác trước, như
 //! `brooo`) được bảo toàn raw TRƯỚC khi gọi `lua_chon` (xem `phan_doan`).
 
-use crate::am_tiet;
+use super::am_tiet;
+use super::chu_viet::{DauChu, DauThanh};
+use super::telex::{DonViRender, NoiDungDonVi};
 use crate::cau_hinh::ChinhSachLuaChon;
-use crate::chu_viet::{DauChu, DauThanh};
-use crate::telex::{DonViRender, NoiDungDonVi};
 use alloc::string::String;
 
 /// Kết quả lựa chọn.
@@ -37,7 +37,7 @@ pub(crate) fn render_de_tu_don_vi(don_vi: &[DonViRender]) -> String {
         match &u.noi_dung {
             NoiDungDonVi::Chu(chu) => {
                 // Dùng ký tự thường không dấu thanh để parse âm tiết.
-                let ky_tu = crate::render::nguyen_am_nfc(chu.chu_goc, chu.dau_chu, DauThanh::Khong)
+                let ky_tu = super::render::nguyen_am_nfc(chu.chu_goc, chu.dau_chu, DauThanh::Khong)
                     .unwrap_or_else(|| chu.chu_goc.ky_tu_thuong());
                 s.push(ky_tu);
             }

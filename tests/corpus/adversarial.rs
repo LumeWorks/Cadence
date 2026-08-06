@@ -5,7 +5,7 @@
 //! không invariant failure. Giới hạn phiên đặt 4096 cho mọi test.
 //!
 //! Liên kết branch: `phien_go.rs` (giới hạn, cursor), `phan_doan.rs`,
-//! `ngu_canh.rs`, `telex.rs` (escape loop), `vi_tri.rs` (grapheme storm).
+//! `ngu_canh.rs`, `kieu_go/telex.rs` (escape loop), `vi_tri.rs` (grapheme storm).
 
 use cadence::{BoGo, CauHinh, KetQuaXuLy, PhienGo};
 use unicode_segmentation::UnicodeSegmentation;

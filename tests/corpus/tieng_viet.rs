@@ -4,8 +4,8 @@
 //! Corpus tiếng Việt - enumeration có hệ thống: mọi âm đầu, âm cuối, nguyên
 //! âm, dấu thanh, quy tắc đặt dấu, NFC/NFD input, viết hoa, chỉnh sửa giữa.
 //!
-//! Liên kết branch: `am_tiet.rs` (bảng âm đầu/âm cuối), `telex.rs` (hình chữ,
-//! dấu thanh, nguyên âm chính), `render.rs` (NFC/NFD), `lua_chon.rs` (selection).
+//! Liên kết branch: `kieu_go/am_tiet.rs` (bảng âm đầu/âm cuối), `kieu_go/telex.rs` (hình chữ,
+//! dấu thanh, nguyên âm chính), `kieu_go/render.rs` (NFC/NFD), `kieu_go/lua_chon.rs` (selection).
 
 use cadence::{BoGo, CauHinh, ChinhSachLuaChon, DangUnicode, KieuTelex, LoaiNoiDung, QuyTacDatDau};
 use unicode_normalization::UnicodeNormalization;

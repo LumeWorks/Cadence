@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
 //! Corpus Unicode - NFC/NFD idempotent, combining mark, ZWJ, boundary.
-//! Liên kết branch: `render.rs`, `vi_tri.rs::tai_byte`, `phan_doan.rs::LoaiDoan::Emoji`.
+//! Liên kết branch: `kieu_go/render.rs`, `vi_tri.rs::tai_byte`, `phan_doan.rs::LoaiDoan::Emoji`.
 
 use cadence::{BoGo, CauHinh, DangUnicode};
 use unicode_normalization::UnicodeNormalization;

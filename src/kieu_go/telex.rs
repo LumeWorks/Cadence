@@ -9,9 +9,9 @@
 
 use alloc::vec::Vec;
 
+use super::chu_viet::{ChuCaiViet, ChuGoc, DauChu, DauThanh, KieuHoa};
+use super::render;
 use crate::cau_hinh::{KieuTelex, QuyTacDatDau};
-use crate::chu_viet::{ChuCaiViet, ChuGoc, DauChu, DauThanh, KieuHoa};
-use crate::render;
 use crate::thao_tac::{CachNhap, ThaoTacNhap};
 
 /// Nội dung một đơn vị render.
@@ -402,7 +402,7 @@ pub(crate) fn xu_ly_doan_chu(
 mod tests {
     use super::*;
     use crate::cau_hinh::KieuTelex;
-    use crate::chu_viet::{ChuGoc, DauChu};
+    use crate::kieu_go::chu_viet::{ChuGoc, DauChu};
 
     /// Bảng cap_hinh_chu: mỗi cặp (base, modifier) hợp lệ trả đúng (ChuGoc, DauChu).
     #[test]

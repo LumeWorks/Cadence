@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Lê Hùng Quang Minh
 
 //! Corpus hình chữ - enumeration mọi cặp (base, modifier) → (ChuGoc, DauChu).
-//! Liên kết branch: `telex.rs::cap_hinh_chu`, `render.rs::nguyen_am_nfc`.
+//! Liên kết branch: `kieu_go/telex.rs::cap_hinh_chu`, `kieu_go/render.rs::nguyen_am_nfc`.
 
 use cadence::{BoGo, CauHinh};
 

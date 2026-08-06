@@ -13,7 +13,7 @@
 //! ```
 
 use crate::cau_hinh::KieuTelex;
-use crate::render;
+use crate::kieu_go::render;
 use crate::thao_tac::{CachNhap, ThaoTacNhap};
 use alloc::vec::Vec;
 
