@@ -1,0 +1,391 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 Lê Hùng Quang Minh
+#
+# Release workflow cho Cadence. Xem docs/AUTOMATED_RELEASES.md.
+#
+# Bất biến:
+# - Chỉ phát hành từ annotated tag đã tồn tại, đúng regex calendar/change/patch.
+# - Không tự tạo hoặc di chuyển tag.
+# - Không dùng pull_request_target hay workflow_run.
+# - Pin GitHub Actions về full commit SHA đã xác minh.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag
+        required: true
+        type: string
+
+      publish_crate:
+        description: Publish the crate to crates.io
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      version: ${{ steps.resolve.outputs.version }}
+      tag_commit: ${{ steps.validate.outputs.tag_commit }}
+      crate_file: ${{ steps.resolve.outputs.crate_file }}
+      checksum_file: ${{ steps.resolve.outputs.checksum_file }}
+    steps:
+      - name: Resolve tag
+        id: resolve
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
+
+          if [ -z "$TAG" ]; then
+            echo "::error::tag is empty"
+            exit 1
+          fi
+
+          if ! echo "$TAG" | grep -qE '^v[0-9]{4}\.[1-9][0-9]*\.[0-9]+$'; then
+            echo "::error::tag '$TAG' does not match v<year>.<change>.<patch>"
+            exit 1
+          fi
+
+          VERSION="${TAG#v}"
+          CRATE_FILE="target/package/cadence-ime-${VERSION}.crate"
+          CHECKSUM_FILE="target/package/cadence-ime-${VERSION}.crate.sha256"
+
+          {
+            echo "tag=$TAG"
+            echo "version=$VERSION"
+            echo "crate_file=$CRATE_FILE"
+            echo "checksum_file=$CHECKSUM_FILE"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout tag
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: refs/tags/${{ steps.resolve.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # v1
+        with:
+          components: rustfmt, clippy
+
+      - name: Validate tag and package metadata
+        id: validate
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.resolve.outputs.tag }}"
+          VERSION="${{ steps.resolve.outputs.version }}"
+
+          # Check tag exists locally
+          if ! git tag --list "$TAG" | grep -q .; then
+            echo "::error::tag '$TAG' does not exist"
+            exit 1
+          fi
+
+          # Check annotated tag (objecttype 'tag', not 'commit' for lightweight)
+          OBJECT_TYPE=$(git for-each-ref --format='%(objecttype)' "refs/tags/$TAG")
+          if [ "$OBJECT_TYPE" != "tag" ]; then
+            echo "::error::tag '$TAG' is a lightweight tag, not an annotated tag"
+            exit 1
+          fi
+
+          # Get tag commit SHA
+          TAG_COMMIT=$(git rev-list -n 1 "$TAG")
+          echo "tag_commit=$TAG_COMMIT" >> "$GITHUB_OUTPUT"
+
+          # Check working tree clean
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::working tree is not clean after checkout"
+            git status --porcelain
+            exit 1
+          fi
+
+          # Get Cargo metadata
+          METADATA=$(cargo metadata --format-version 1 --no-deps)
+          PKG_VERSION=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['packages'][0]['version'])")
+          PKG_NAME=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['packages'][0]['name'])")
+          LIB_TARGET=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['packages'][0]['targets'][0]['name'])")
+          REPO_URL=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['packages'][0]['repository'])")
+
+          if [ "$PKG_VERSION" != "$VERSION" ]; then
+            echo "::error::package version '$PKG_VERSION' does not match tag version '$VERSION'"
+            exit 1
+          fi
+
+          if [ "$PKG_NAME" != "cadence-ime" ]; then
+            echo "::error::package name '$PKG_NAME' is not 'cadence-ime'"
+            exit 1
+          fi
+
+          if [ "$LIB_TARGET" != "cadence" ]; then
+            echo "::error::library target '$LIB_TARGET' is not 'cadence'"
+            exit 1
+          fi
+
+          if [ "$REPO_URL" != "https://github.com/LumeWorks/Cadence" ]; then
+            echo "::error::repository URL '$REPO_URL' is not 'https://github.com/LumeWorks/Cadence'"
+            exit 1
+          fi
+
+          echo "Validated: tag=$TAG version=$VERSION commit=$TAG_COMMIT"
+
+      - name: Gate - fmt
+        run: cargo fmt --check
+
+      - name: Gate - clippy all features
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Gate - clippy no default features
+        run: cargo clippy --all-targets --no-default-features -- -D warnings
+
+      - name: Gate - test all features
+        run: cargo test --all-features
+
+      - name: Gate - test no default features
+        run: cargo test --no-default-features
+
+      - name: Gate - test serde,trace
+        run: cargo test --no-default-features --features serde,trace
+
+      - name: Gate - check release
+        run: cargo check --release --no-default-features
+
+      - name: Gate - doc
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+        run: cargo doc --all-features --no-deps
+
+      - name: Package
+        run: cargo package --locked
+
+      - name: Verify package
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.resolve.outputs.version }}"
+          TAG_COMMIT="${{ steps.validate.outputs.tag_commit }}"
+          CRATE_FILE="target/package/cadence-ime-${VERSION}.crate"
+
+          if [ ! -f "$CRATE_FILE" ]; then
+            echo "::error::crate file $CRATE_FILE not found"
+            exit 1
+          fi
+
+          # Extract package to temp dir and verify VCS SHA
+          TMPDIR=$(mktemp -d)
+          tar -xf "$CRATE_FILE" -C "$TMPDIR"
+
+          VCS_SHA=$(python3 -c "import json; print(json.load(open('$TMPDIR/cadence-ime-$VERSION/.cargo_vcs_info.json'))['git']['sha1'])" 2>/dev/null || echo "")
+          if [ "$VCS_SHA" != "$TAG_COMMIT" ]; then
+            echo "::error::VCS SHA '$VCS_SHA' does not match tag commit '$TAG_COMMIT'"
+            exit 1
+          fi
+
+          # Check for forbidden files
+          FORBIDDEN=$(find "$TMPDIR" \( -name ".git" -o -name "target" -o -name "*.secret" -o -name "*.token" -o -name "*.pem" -o -name "*.key" -o -name "*.log" \) 2>/dev/null || true)
+          if [ -n "$FORBIDDEN" ]; then
+            echo "::error::forbidden files in package:"
+            echo "$FORBIDDEN"
+            exit 1
+          fi
+
+          rm -rf "$TMPDIR"
+          echo "Package verified: VCS SHA matches tag commit $TAG_COMMIT"
+
+      - name: Create checksum
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.resolve.outputs.version }}"
+          CRATE_FILE="target/package/cadence-ime-${VERSION}.crate"
+          sha256sum "$CRATE_FILE" > "${CRATE_FILE}.sha256"
+          echo "Checksum: $(cat ${CRATE_FILE}.sha256)"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cadence-ime-${{ steps.resolve.outputs.version }}
+          path: |
+            target/package/cadence-ime-${{ steps.resolve.outputs.version }}.crate
+            target/package/cadence-ime-${{ steps.resolve.outputs.version }}.crate.sha256
+          retention-days: 14
+
+  publish-crate:
+    name: Publish crate
+    needs: prepare
+    if: github.event_name == 'push' || inputs.publish_crate == true
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # v1
+
+      - name: Check if version already published
+        id: check-published
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.prepare.outputs.version }}"
+          if cargo info "cadence-ime@${VERSION}" >/dev/null 2>&1; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "Version $VERSION is already published on crates.io"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+            echo "Version $VERSION is not yet published on crates.io"
+          fi
+
+      - name: Check if crate exists on crates.io
+        id: check-crate
+        if: steps.check-published.outputs.already_published != 'true'
+        run: |
+          set -euo pipefail
+          if curl -sf -H "User-Agent: LumeWorks-Cadence-release" \
+            "https://crates.io/api/v1/crates/cadence-ime" >/dev/null 2>&1; then
+            echo "crate_exists=true" >> "$GITHUB_OUTPUT"
+            echo "Crate cadence-ime exists on crates.io"
+          else
+            echo "crate_exists=false" >> "$GITHUB_OUTPUT"
+            echo "Crate cadence-ime does not exist on crates.io (first release)"
+          fi
+
+      - name: Publish with CRATES_IO_TOKEN (first release)
+        if: steps.check-published.outputs.already_published != 'true' && steps.check-crate.outputs.crate_exists != 'true'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CARGO_REGISTRY_TOKEN}" ]; then
+            echo "::error::cadence-ime has not been published before."
+            echo "::error::Configure the CRATES_IO_TOKEN repository secret for the first release,"
+            echo "::error::then rerun this workflow."
+            exit 1
+          fi
+          cargo publish --locked
+
+      - name: Authenticate with crates.io (Trusted Publishing)
+        if: steps.check-published.outputs.already_published != 'true' && steps.check-crate.outputs.crate_exists == 'true'
+        id: crates-auth
+        uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
+
+      - name: Publish with Trusted Publishing
+        if: steps.check-published.outputs.already_published != 'true' && steps.check-crate.outputs.crate_exists == 'true'
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-auth.outputs.token }}
+        run: cargo publish --locked
+
+      - name: Verify registry
+        if: steps.check-published.outputs.already_published != 'true'
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.prepare.outputs.version }}"
+          for i in $(seq 1 12); do
+            if cargo info "cadence-ime@${VERSION}" >/dev/null 2>&1; then
+              echo "Version $VERSION confirmed on crates.io after $i attempt(s)"
+              exit 0
+            fi
+            echo "Attempt $i: version not yet visible on crates.io, waiting 10s..."
+            sleep 10
+          done
+          echo "::warning::Version $VERSION was uploaded but not yet visible on crates.io after 120s."
+          echo "::warning::Check https://crates.io/crates/cadence-ime manually."
+
+  github-release:
+    name: GitHub Release
+    needs: [prepare, publish-crate]
+    if: always() && needs.prepare.result == 'success' && (needs.publish-crate.result == 'success' || needs.publish-crate.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Download artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: cadence-ime-${{ needs.prepare.outputs.version }}
+          path: release-assets
+
+      - name: Extract release notes from CHANGELOG
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.prepare.outputs.version }}"
+          cat > /tmp/extract_notes.py << 'PYEOF'
+          import re, sys
+          version = sys.argv[1]
+          with open("CHANGELOG.md", encoding="utf-8") as f:
+              lines = f.read().split("\n")
+          pattern = rf"^##\s+\[?{re.escape(version)}\]?(?:\s*-.*?)?$"
+          start = None
+          for i, line in enumerate(lines):
+              if re.match(pattern, line):
+                  start = i + 1
+                  break
+          if start is None:
+              print(f"::error::version {version} not found in CHANGELOG.md")
+              sys.exit(1)
+          end = len(lines)
+          for j in range(start, len(lines)):
+              if re.match(r"^##\s+", lines[j]):
+                  end = j
+                  break
+          notes = "\n".join(lines[start:end]).strip()
+          with open("release-notes.md", "w", encoding="utf-8") as f:
+              f.write(notes)
+          print(f"Extracted {len(notes)} chars of release notes")
+          PYEOF
+          python3 /tmp/extract_notes.py "$VERSION"
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.prepare.outputs.tag }}"
+          VERSION="${{ needs.prepare.outputs.version }}"
+          TITLE="Cadence ${VERSION}"
+          CRATE_FILE="release-assets/cadence-ime-${VERSION}.crate"
+          CHECKSUM_FILE="release-assets/cadence-ime-${VERSION}.crate.sha256"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, updating..."
+            gh release upload "$TAG" "$CRATE_FILE" "$CHECKSUM_FILE" --clobber
+            gh release edit "$TAG" --title "$TITLE" --notes-file release-notes.md --latest
+          else
+            gh release create "$TAG" \
+              --verify-tag \
+              --title "$TITLE" \
+              --notes-file release-notes.md \
+              --latest \
+              "$CRATE_FILE" "$CHECKSUM_FILE"
+          fi
+
+          echo "GitHub Release for $TAG is ready"

@@ -63,6 +63,30 @@ cargo bench
 * Không force-push, không amend/squash commit cũ, không sửa lịch sử đã tồn tại.
 * Không commit file build, secret hoặc dữ liệu máy cá nhân.
 
+## Phát hành
+
+Phát hành được tự động hóa qua `.github/workflows/release.yml`. Xem
+`docs/RELEASE.md` và `docs/AUTOMATED_RELEASES.md` cho chi tiết đầy đủ.
+
+Tóm tắt:
+
+1. Đảm bảo `version` trong `Cargo.toml` và section trong `CHANGELOG.md` khớp.
+2. Chạy toàn bộ gate (xem lệnh kiểm tra ở trên + `docs/RELEASE.md`).
+3. Tạo annotated tag: `git tag -a v2026.1.0 -m "Cadence 2026.1.0"`.
+4. Push tag: `git push origin v2026.1.0` — kích hoạt release workflow.
+5. Workflow chạy gate, đóng gói, publish crates.io (tùy chọn), tạo GitHub Release.
+
+Backfill (tag đã tồn tại):
+
+```bash
+gh workflow run release.yml --ref main -f tag=v2026.1.0 -f publish_crate=false
+```
+
+Quy tắc:
+* Không force-push, không xóa, không di chuyển tag.
+* Tag `v0.1.0` (mốc nội bộ) không bao giờ thay đổi.
+* Version scheme: calendar/change/patch (xem `docs/VERSIONING.md`).
+
 ## Báo lỗi
 
 * Mỗi issue một vấn đề, có bước tái hiện và kỳ vọng.

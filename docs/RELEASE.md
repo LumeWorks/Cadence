@@ -1,27 +1,33 @@
 # Phát hành Cadence
 
-Tài liệu này mô tả quy trình phát hành và gate kiểm tra cho Cadence. Phát hành
-= khóa source ở một commit, tạo tag SemVer, tạo package tái lập được. Cadence
-**không** tự chạy `cargo publish` trong CI; publish là thao tác thủ công có chủ
-đích.
+Tài liệu này mô tả quy trình phát hành tự động và gate kiểm tra cho Cadence.
+
+Phát hành được tự động hóa qua `.github/workflows/release.yml`. Workflow
+chạy toàn bộ gate, đóng gói, tạo checksum, publish lên crates.io (tùy chọn),
+và tạo GitHub Release với release notes trích từ `CHANGELOG.md`.
 
 ## Version
 
-Cadence dùng SemVer. Trước `1.0.0`:
+Cadence dùng hệ calendar/change/patch (xem `docs/VERSIONING.md`):
 
-- `0.1.x`: giữ source compatibility (xem `docs/API_STABILITY.md`).
-- `0.2.0`: có thể có breaking change có lý do, ghi CHANGELOG + RFC.
-- `1.0.0`: cam kết SemVer đầy đủ.
+```
+<năm>.<số phiên bản thay đổi>.<số phiên bản vá>
+```
 
-Version nằm trong `Cargo.toml` (`[package] version`) và `CHANGELOG.md`. Phát
-hành `0.1.0` phải có `version = "0.1.0"` (không `-rc`/`-dev`).
+Ví dụ: `2026.1.0`, `2026.1.1`, `2026.2.0`.
+
+Version nằm trong `Cargo.toml` (`[package] version`) và `CHANGELOG.md`. Tag
+phải khớp `v<version>` (vd `v2026.1.0`).
 
 ## MSRV
 
-Rust 1.85 (xem `docs/MSRV.md`). Tăng MSRV là breaking change. CI chạy matrix
-`stable` và `1.85` trên Linux/Windows/macOS (xem `.github/workflows/ci.yml`).
+Rust 1.85 (xem `docs/MSRV.md`). Tăng MSRV là breaking change (tăng thành phần
+thứ hai). CI chạy matrix `stable` và `1.85` trên Linux/Windows/macOS (xem
+`.github/workflows/ci.yml`).
 
-## Gate phát hành (phải xanh trước tag)
+## Gate phát hành (chạy tự động trong workflow)
+
+Release workflow chạy các gate sau trong job `prepare`:
 
 ```bash
 cargo fmt --check
@@ -29,24 +35,20 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo clippy --all-targets --no-default-features -- -D warnings
 cargo test --all-features
 cargo test --no-default-features
-cargo test --no-default-features --features serde
-cargo test --no-default-features --features trace
 cargo test --no-default-features --features serde,trace
-cargo check --release
 cargo check --release --no-default-features
-cargo check --release --no-default-features --features serde
-cargo check --release --no-default-features --features trace
-cargo check --release --no-default-features --features serde,trace
 RUSTDOCFLAGS="-D warnings" cargo doc --all-features --no-deps
-cargo +1.85 fmt --check
-cargo +1.85 clippy --all-targets --all-features -- -D warnings
-cargo +1.85 test --all-features
-cargo +1.85 test --no-default-features
-cargo +1.85 test --no-default-features --features serde,trace
-cargo +1.85 check --release --no-default-features
 ```
 
-## Source safety
+Ngoài ra workflow kiểm tra:
+- Tag là annotated tag (không phải lightweight).
+- Version trong `Cargo.toml` khớp tag.
+- Package name là `cadence-ime`, lib target là `cadence`.
+- Repository URL là `https://github.com/LumeWorks/Cadence`.
+- VCS SHA trong `.cargo_vcs_info.json` khớp commit của tag.
+- Package không chứa file cấm (`.git`, `target`, `*.secret`, `*.token`, `*.pem`, `*.key`, `*.log`).
+
+## Source safety (chạy thủ công trước tag)
 
 ```bash
 grep -RIn --exclude-dir=target --exclude-dir=.git "unsafe" src      # chỉ forbid
@@ -60,7 +62,7 @@ Production `src` không có `unsafe` usage, `unwrap()`, `panic!`, `expect(`,
 `unreachable!`, I/O/network/thread/lock, mutable static. (`panic!`/`expect(`
 chỉ trong inline `#[cfg(test)]` của `src` — xem `docs/SECURITY_MODEL.md`.)
 
-## Dependency / supply chain
+## Dependency / supply chain (chạy thủ công trước tag)
 
 ```bash
 cargo deny check     # advisories/bans/licenses/sources
@@ -71,57 +73,83 @@ cargo tree --duplicates
 `deny.toml` cấu hình license allowlist + ban advisories + chỉ crates.io. Không
 thêm `allow` rộng. Mọi allow phải có comment lý do + điều kiện xóa.
 
-## Package
+## Package (chạy tự động trong workflow)
 
 ```bash
-cargo package --list   # kiểm danh sách file
-cargo package          # verify độc lập trên working tree sạch
+cargo package --locked
 ```
 
-Package không chứa `target/`, `.git`, soak log, secret, dump. `cargo package`
-không dùng `--allow-dirty` trong release gate cuối.
-
-## Soak / benchmark
-
-```bash
-cargo test --release --all-features --test soak
-cargo bench --all-features --bench xuyet
-```
-
-Soak không panic, không invariant failure. Benchmark không regression blocking,
-không treo, worst-case trong budget đã tài liệu hóa (µs–ms).
+Workflow tạo file `.crate`, tính SHA-256 checksum, và upload làm artifact.
 
 ## Tài liệu phát hành
 
-Phải tồn tại và đúng:
+Phải tồn tại và đúng trước tag:
 
-- `CHANGELOG.md` có section version với ngày phát hành + hạn chế đã biết.
-- `docs/INTEGRATION.md` (contract host).
-- `docs/API_STABILITY.md`, `docs/SECURITY_MODEL.md`, `docs/MSRV.md`.
-- `docs/TRACE_PRIVACY.md`, `docs/INVARIANTS.md`, `docs/DEPENDENCIES.md`.
-- `docs/api/public-api-0.1.0.md` khớp public API thật.
-- Báo cáo audit (`docs/RELEASE_CANDIDATE_REPORT.md`).
+- `CHANGELOG.md` có section `## [<version>] - <date>` với hạn chế đã biết.
+- `docs/VERSIONING.md`, `docs/MSRV.md`, `docs/SECURITY_MODEL.md`.
+- `docs/API_STABILITY.md`, `docs/TRACE_PRIVACY.md`, `docs/INVARIANTS.md`.
+- `docs/DEPENDENCIES.md`, `docs/INTEGRATION.md`.
+- `docs/api/public-api-<version>.md` khớp public API thật.
 
-## Tag
+Release notes được trích tự động từ `CHANGELOG.md` — section giữa `## [<version>]`
+và `##` tiếp theo.
 
-Chỉ tạo tag khi toàn bộ gate xanh và working tree sạch:
+## Tạo tag (thủ công, duy nhất một lần)
+
+Khi toàn bộ gate xanh và working tree sạch:
 
 ```bash
 git status --short          # phải rỗng
-git tag -a v0.1.0 -m "Cadence 0.1.0"
+git tag -a v2026.1.0 -m "Cadence 2026.1.0"
 git push origin main
-git push origin v0.1.0
-git ls-remote --tags origin refs/tags/v0.1.0   # xác minh remote
+git push origin v2026.1.0
+git ls-remote --tags origin refs/tags/v2026.1.0   # xác minh remote
 ```
 
-Không force-push, không rewrite history, không xóa tag. Nếu push tag thất bại,
-không xóa tag local, ghi lỗi.
+Push tag kích hoạt release workflow tự động.
 
-## Không chạy `cargo publish`
+Quy tắc:
+- Chỉ tạo annotated tag (`-a`), không lightweight tag.
+- Không force-push, không rewrite history, không xóa tag.
+- Tag `v0.1.0` (mốc nội bộ) không bao giờ di chuyển hoặc xóa.
+- Nếu push tag thất bại, không xóa tag local, ghi lỗi.
 
-Cadence không tự publish. Khi chủ đích publish (thủ công):
+## Backfill (phát hành lại tag đã tồn tại)
+
+Khi cần chạy lại release workflow cho tag đã tồn tại (vd workflow cũ thất bại,
+cần cập nhật release notes hoặc asset):
 
 ```bash
-cargo publish --dry-run    # kiểm tra
-cargo publish              # chỉ khi chủ đích, không trong audit/CI
+gh workflow run release.yml \
+  --ref main \
+  -f tag=v2026.1.0 \
+  -f publish_crate=false
 ```
+
+Workflow dùng `workflow_dispatch` với input `tag` và `publish_crate` (mặc định
+`true`). Đặt `publish_crate=false` nếu version đã publish trên crates.io để bỏ
+qua job `publish-crate` mà vẫn tạo/cập nhật GitHub Release.
+
+## crates.io publish
+
+Workflow tự động publish lên crates.io (job `publish-crate`):
+
+- **Lần đầu** (`cadence-ime` chưa tồn tại): cần secret `CRATES_IO_TOKEN` (token
+  từ https://crates.io/settings/tokens với scope `publish-update`). Workflow sẽ
+  báo lỗi nếu secret chưa cấu hình.
+- **Các lần sau** (crate đã tồn tại): dùng Trusted Publishing qua
+  `rust-lang/crates-io-auth-action` (OIDC, không cần long-lived token).
+- **Idempotent**: nếu version đã publish, workflow bỏ qua và tiếp tục tạo
+  GitHub Release.
+
+Chi tiết đầy đủ: `docs/AUTOMATED_RELEASES.md`.
+
+## GitHub Release
+
+Job `github-release` tạo hoặc cập nhật GitHub Release:
+
+- Tựa: `Cadence <version>`.
+- Release notes: trích từ `CHANGELOG.md`.
+- Assets: file `.crate` + file `.sha256`.
+- `--latest` đánh dấu release mới nhất.
+- Idempotent: nếu release đã tồn tại, cập nhật assets và notes (`--clobber`).
