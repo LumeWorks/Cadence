@@ -1,7 +1,10 @@
 # Rust
 /target
 **/*.rs.bk
-Cargo.lock.bak
+Cargo.lock.bk
+
+# Proptest
+tests/**/*.proptest-regressions
 
 # Editor
 .idea/
