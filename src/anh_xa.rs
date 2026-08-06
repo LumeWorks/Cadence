@@ -20,10 +20,11 @@ use alloc::vec::Vec;
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::cau_hinh::{ChinhSachLuaChon, DangUnicode, KieuTelex, QuyTacDatDau};
+use crate::cau_hinh::{ChinhSachLuaChon, DangUnicode, KieuGo, KieuTelex, QuyTacDatDau};
+use crate::kieu_go::don_vi::{DonViRender, NoiDungDonVi};
 use crate::kieu_go::lua_chon;
 use crate::kieu_go::render;
-use crate::kieu_go::telex::{self, DonViRender, NoiDungDonVi};
+use crate::kieu_go::{telex, vni};
 use crate::loai_noi_dung::LoaiNoiDung;
 use crate::ngu_canh;
 use crate::phan_doan::{self, Doan, LoaiDoan};
@@ -58,12 +59,13 @@ struct RenderDoan {
 pub(crate) fn xay_lai(
     thao_tac: &[ThaoTacNhap],
     dang: DangUnicode,
+    kieu_go: KieuGo,
     kieu_telex: KieuTelex,
     quy_tac: QuyTacDatDau,
     chinh_sach: ChinhSachLuaChon,
 ) -> KetQuaRender {
-    let cac_doan = phan_doan::phan_doan(thao_tac, kieu_telex);
-    let nhan_dien = ngu_canh::nhan_dien(&cac_doan, thao_tac);
+    let cac_doan = phan_doan::phan_doan(thao_tac, kieu_go, kieu_telex);
+    let nhan_dien = ngu_canh::nhan_dien(&cac_doan, thao_tac, kieu_go);
 
     let mut noi_dung = String::new();
     let mut raw_to_byte = vec![0usize; thao_tac.len() + 1];
@@ -78,6 +80,7 @@ pub(crate) fn xay_lai(
             doan,
             slice,
             dang,
+            kieu_go,
             kieu_telex,
             quy_tac,
             chinh_sach,
@@ -91,7 +94,10 @@ pub(crate) fn xay_lai(
                 r.loai,
                 LoaiNoiDung::BienDoiTelex | LoaiNoiDung::AmTietTiengViet
             ) {
-                TraceKetQua::Telex
+                match kieu_go {
+                    KieuGo::Telex => TraceKetQua::Telex,
+                    KieuGo::Vni => TraceKetQua::Vni,
+                }
             } else {
                 TraceKetQua::NguyenBan
             };
@@ -138,34 +144,46 @@ pub(crate) fn xay_lai(
     }
 }
 
-/// Render một đoạn theo loại. Đoạn `Chu` chạy Telex (trừ teencode lặp hoặc
+/// Render một đoạn theo loại. Đoạn `Chu` chạy Telex/VNI (trừ teencode lặp hoặc
 /// bị buộc raw bởi nhận diện ngữ cảnh); mọi đoạn khác render nguyên bản.
+#[allow(clippy::too_many_arguments)]
 fn render_doan(
     doan: &Doan,
     slice: &[ThaoTacNhap],
     dang: DangUnicode,
+    kieu_go: KieuGo,
     kieu_telex: KieuTelex,
     quy_tac: QuyTacDatDau,
     chinh_sach: ChinhSachLuaChon,
     bat_buoc_raw: bool,
 ) -> RenderDoan {
     match doan.loai {
-        LoaiDoan::Chu => render_chu(slice, dang, kieu_telex, quy_tac, chinh_sach, bat_buoc_raw),
+        LoaiDoan::Chu => render_chu(
+            slice,
+            dang,
+            kieu_go,
+            kieu_telex,
+            quy_tac,
+            chinh_sach,
+            bat_buoc_raw,
+        ),
         // NguyenBan/non-Chu: as-is (giữ nguyên, không normalize). Các ký tự
         // này (ASCII, emoji, combining mark) không thay đổi khi normalize.
         _ => render_nguyen_ban(slice),
     }
 }
 
-/// Render một đoạn chữ qua Telex, chọn raw/Telex theo `lua_chon`.
+/// Render một đoạn chữ qua kiểu gõ đã chọn (Telex hoặc VNI), chọn raw/biến đổi
+/// theo `lua_chon`.
 ///
 /// Teencode lặp (3+ chữ cái hình chữ doubled-base có chữ khác trước) hoặc
 /// đoạn bị buộc raw bởi nhận diện ngữ cảnh (`::`, `=`, URL, ...) được bảo
-/// toàn raw trước khi chạy Telex. Khi fallback raw, dùng `render_chu`
+/// toàn raw trước khi chạy engine. Khi fallback raw, dùng `render_chu`
 /// (normalize) để NFC/NFD canonical equivalent giữ đúng.
 fn render_chu(
     slice: &[ThaoTacNhap],
     dang: DangUnicode,
+    kieu_go: KieuGo,
     kieu_telex: KieuTelex,
     quy_tac: QuyTacDatDau,
     chinh_sach: ChinhSachLuaChon,
@@ -174,13 +192,16 @@ fn render_chu(
     if bat_buoc_raw || phan_doan::la_teencode_lap(slice) {
         return render_raw_chu(slice, dang);
     }
-    let ket_qua_telex = telex::xu_ly_doan_chu(slice, kieu_telex, quy_tac);
-    let don_vi = &ket_qua_telex.don_vi;
+    let ket_qua_doan = match kieu_go {
+        KieuGo::Telex => telex::xu_ly_doan_chu(slice, kieu_telex, quy_tac),
+        KieuGo::Vni => vni::xu_ly_doan_chu(slice, quy_tac),
+    };
+    let don_vi = &ket_qua_doan.don_vi;
     let lua_chon = lua_chon::lua_chon(
         don_vi,
         "",
-        ket_qua_telex.co_escape,
-        ket_qua_telex.co_escape_hinh_chu,
+        ket_qua_doan.co_escape,
+        ket_qua_doan.co_escape_hinh_chu,
         false,
         chinh_sach,
     );

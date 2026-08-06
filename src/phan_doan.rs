@@ -12,7 +12,7 @@
 //! lịch sử thao tác → phan_doan → Vec<Doan> → mỗi đoạn render riêng
 //! ```
 
-use crate::cau_hinh::KieuTelex;
+use crate::cau_hinh::{KieuGo, KieuTelex};
 use crate::kieu_go::render;
 use crate::thao_tac::{CachNhap, ThaoTacNhap};
 use alloc::vec::Vec;
@@ -126,7 +126,7 @@ fn la_ky_thuat(c: char) -> bool {
 }
 
 /// Phân loại một thao tác raw (chỉ xét ký tự và cách nhập).
-fn phan_loai(t: &ThaoTacNhap, kieu_telex: KieuTelex) -> LoaiDoan {
+fn phan_loai(t: &ThaoTacNhap, kieu_go: KieuGo, kieu_telex: KieuTelex) -> LoaiDoan {
     if t.cach_nhap == CachNhap::NguyenBan {
         return LoaiDoan::NguyenBan;
     }
@@ -139,7 +139,14 @@ fn phan_loai(t: &ThaoTacNhap, kieu_telex: KieuTelex) -> LoaiDoan {
         if c.is_ascii_alphabetic() {
             LoaiDoan::Chu
         } else if c.is_ascii_digit() {
-            LoaiDoan::So
+            // VNI: digit `1..=9` là modifier → gộp vào `Chu` để engine xử lý.
+            // `0` không phải modifier VNI; giữ `So` để bảo toàn chuỗi số kỹ
+            // thuật (vd `2026-08-06`, `127.0.0.1`).
+            if kieu_go == KieuGo::Vni && ('1'..='9').contains(&c) {
+                LoaiDoan::Chu
+            } else {
+                LoaiDoan::So
+            }
         } else if la_khoang_trang(c) {
             LoaiDoan::KhoangTrang
         } else if la_dau_cau(c) {
@@ -165,13 +172,17 @@ fn phan_loai(t: &ThaoTacNhap, kieu_telex: KieuTelex) -> LoaiDoan {
 ///
 /// Các thao tác `them_nguyen_ban` luôn là `NguyenBan` (ranh giới đoạn),
 /// bất kể ký tự. Hai thao tác cạnh nhau cùng loại được gộp.
-pub(crate) fn phan_doan(thao_tac: &[ThaoTacNhap], kieu_telex: KieuTelex) -> Vec<Doan> {
+pub(crate) fn phan_doan(
+    thao_tac: &[ThaoTacNhap],
+    kieu_go: KieuGo,
+    kieu_telex: KieuTelex,
+) -> Vec<Doan> {
     let mut ket_qua = Vec::new();
     let mut i = 0;
     while i < thao_tac.len() {
-        let loai = phan_loai(&thao_tac[i], kieu_telex);
+        let loai = phan_loai(&thao_tac[i], kieu_go, kieu_telex);
         let bat_dau = i;
-        while i < thao_tac.len() && phan_loai(&thao_tac[i], kieu_telex) == loai {
+        while i < thao_tac.len() && phan_loai(&thao_tac[i], kieu_go, kieu_telex) == loai {
             i += 1;
         }
         ket_qua.push(Doan {

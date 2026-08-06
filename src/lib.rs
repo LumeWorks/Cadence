@@ -25,7 +25,9 @@ pub mod vi_tri;
 
 pub use ban_chup::BanChupSoan;
 pub use bo_go::BoGo;
-pub use cau_hinh::{CauHinh, ChinhSachLuaChon, DangUnicode, KieuTelex, LoiCauHinh, QuyTacDatDau};
+pub use cau_hinh::{
+    CauHinh, ChinhSachLuaChon, DangUnicode, KieuGo, KieuTelex, LoiCauHinh, QuyTacDatDau,
+};
 pub use ket_qua::KetQuaXuLy;
 pub use loai_noi_dung::LoaiNoiDung;
 pub use phien_go::PhienGo;

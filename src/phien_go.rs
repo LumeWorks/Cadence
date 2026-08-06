@@ -8,7 +8,7 @@ use alloc::vec::Vec;
 
 use crate::anh_xa;
 use crate::ban_chup::BanChupSoan;
-use crate::cau_hinh::{CauHinh, ChinhSachLuaChon, DangUnicode, KieuTelex, QuyTacDatDau};
+use crate::cau_hinh::{CauHinh, ChinhSachLuaChon, DangUnicode, KieuGo, KieuTelex, QuyTacDatDau};
 use crate::ket_qua::KetQuaXuLy;
 use crate::thao_tac::ThaoTacNhap;
 
@@ -31,6 +31,8 @@ pub struct PhienGo {
     gioi_han_thao_tac: usize,
     /// Dạng Unicode output.
     dang_unicode: DangUnicode,
+    /// Kiểu gõ (Telex hoặc VNI).
+    kieu_go: KieuGo,
     /// Kiểu Telex (cân bằng hay đầy đủ).
     kieu_telex: KieuTelex,
     /// Quy tắc đặt dấu thanh (hiện đại hay truyền thống).
@@ -58,6 +60,7 @@ impl PhienGo {
         Self {
             gioi_han_thao_tac: cau_hinh.gioi_han_thao_tac(),
             dang_unicode: cau_hinh.dang_unicode(),
+            kieu_go: cau_hinh.kieu_go(),
             kieu_telex: cau_hinh.kieu_telex(),
             quy_tac_dat_dau: cau_hinh.quy_tac_dat_dau(),
             chinh_sach_lua_chon: cau_hinh.chinh_sach_lua_chon(),
@@ -232,6 +235,7 @@ impl PhienGo {
         let ket_qua = anh_xa::xay_lai(
             &self.lich_su,
             self.dang_unicode,
+            self.kieu_go,
             self.kieu_telex,
             self.quy_tac_dat_dau,
             self.chinh_sach_lua_chon,

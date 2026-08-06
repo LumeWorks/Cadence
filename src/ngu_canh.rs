@@ -12,6 +12,8 @@
 //! Không dùng regex, từ điển lớn hay parser framework. Chỉ match bảng ký tự
 //! ASCII và cấu trúc đoạn tuyến tính.
 
+use crate::cau_hinh::KieuGo;
+use crate::kieu_go::am_tiet;
 use crate::phan_doan::{Doan, LoaiDoan};
 use crate::thao_tac::ThaoTacNhap;
 use alloc::string::String;
@@ -28,6 +30,10 @@ pub enum BangChungLuaChon {
     BienDoiHinhChuRoRang,
     /// Phím dấu thanh hợp lệ áp dụng lên nguyên âm.
     PhimDauHopLe,
+    /// Dấu thanh VNI (digit 1-5) hợp lệ áp dụng lên nguyên âm.
+    DauThanhVni,
+    /// Dấu chữ VNI (digit 6-9) hợp lệ áp dụng lên chữ tương thích.
+    DauChuVni,
     /// Phân cách identifier (`_`, `-`, ranh giới CamelCase).
     PhanCachIdentifier,
     /// Cấu trúc URL (`://` hoặc scheme).
@@ -38,8 +44,10 @@ pub enum BangChungLuaChon {
     CauTrucDuongDan,
     /// Cấu trúc command (token bắt đầu bằng `-`/`--`).
     CauTrucCommand,
-    /// Chuỗi số/version/hash/UUID.
+    /// Chuỗi số kỹ thuật (identifier có số, hex, hash, architecture).
     ChuoiSoKyThuat,
+    /// Chuỗi phiên bản (vd `1.2.3`, `v1.2.3`).
+    ChuoiPhienBan,
     /// Ký tự lặp thể hiện cảm xúc (teencode, emoticon).
     KyTuLapChat,
     /// Emoticon (`=)`, `:)`, `:D`, ...).
@@ -276,8 +284,69 @@ fn nhan_emoticon(raws: &[String], cac_doan: &[Doan], i: usize) -> Option<usize> 
     None
 }
 
+/// Trả `true` nếu đoạn `i` là Chu và có chứa digit VNI (`1..=9`).
+fn chu_co_digit_vni(raws: &[String], cac_doan: &[Doan], i: usize) -> bool {
+    if cac_doan[i].loai != LoaiDoan::Chu {
+        return false;
+    }
+    raws[i].chars().any(|c| ('1'..='9').contains(&c))
+}
+
+/// Đếm số digit VNI (`1..=9`) trong chuỗi.
+fn dem_digit_vni(s: &str) -> usize {
+    s.chars().filter(|c| ('1'..='9').contains(c)).count()
+}
+
+/// Trả `true` nếu đoạn kề (bỏ qua KhoangTrang) là So hoặc DauCau `.``-`.
+fn ke_la_so_hoac_dau_cau(raws: &[String], cac_doan: &[Doan], i: usize) -> bool {
+    if i >= cac_doan.len() {
+        return false;
+    }
+    matches!(cac_doan[i].loai, LoaiDoan::So)
+        || (matches!(cac_doan[i].loai, LoaiDoan::DauCau) && (raws[i] == "." || raws[i] == "-"))
+}
+
+/// Nhận diện chuỗi số kỹ thuật cho VNI: Chu segment có digit `1..=9` trông
+/// như identifier kỹ thuật thì buộc raw.
+///
+/// Rule A: 2+ digit VNI AND phần chữ (bỏ digit) là KhongHopLe → raw.
+/// Rule B: 2+ digit VNI AND kề So/DauCau(`.``-`) → raw (ngữ cảnh kỹ thuật).
+fn nhan_chuoi_so_vni(raws: &[String], cac_doan: &[Doan], i: usize, ket_qua: &mut [KetQuaNhanDien]) {
+    if !chu_co_digit_vni(raws, cac_doan, i) {
+        return;
+    }
+    let so_digit = dem_digit_vni(&raws[i]);
+    if so_digit < 2 {
+        return;
+    }
+    // Rule A: phần chữ (bỏ mọi digit 1-9) là KhongHopLe → raw.
+    let base: String = raws[i]
+        .chars()
+        .filter(|c| !('1'..='9').contains(c))
+        .collect();
+    if !base.is_empty() && am_tiet::phan_tich_am_tiet(&base) == am_tiet::MucHopLe::KhongHopLe {
+        ket_qua[i].bat_buoc_raw = true;
+        ket_qua[i].bang_chung = BangChungLuaChon::ChuoiSoKyThuat;
+        return;
+    }
+    // Rule B: kề So hoặc DauCau(`.``-`) → raw (ngữ cảnh kỹ thuật).
+    let ke_truoc = i
+        .checked_sub(1)
+        .map(|j| ke_la_so_hoac_dau_cau(raws, cac_doan, j))
+        .unwrap_or(false);
+    let ke_sau = ke_la_so_hoac_dau_cau(raws, cac_doan, i + 1);
+    if ke_truoc || ke_sau {
+        ket_qua[i].bat_buoc_raw = true;
+        ket_qua[i].bang_chung = BangChungLuaChon::ChuoiSoKyThuat;
+    }
+}
+
 /// Tính `bat_buoc_raw` và bằng chứng cho mỗi đoạn.
-pub(crate) fn nhan_dien(cac_doan: &[Doan], thao_tac: &[ThaoTacNhap]) -> Vec<KetQuaNhanDien> {
+pub(crate) fn nhan_dien(
+    cac_doan: &[Doan],
+    thao_tac: &[ThaoTacNhap],
+    kieu_go: KieuGo,
+) -> Vec<KetQuaNhanDien> {
     let n = cac_doan.len();
     let raws: Vec<String> = cac_doan.iter().map(|d| raw_doan(thao_tac, d)).collect();
     let mut ket_qua = vec![
@@ -287,6 +356,13 @@ pub(crate) fn nhan_dien(cac_doan: &[Doan], thao_tac: &[ThaoTacNhap]) -> Vec<KetQ
         };
         n
     ];
+
+    // Pass 0 (VNI): nhận diện chuỗi số kỹ thuật trong đoạn Chu có digit VNI.
+    if kieu_go == KieuGo::Vni {
+        for i in 0..n {
+            nhan_chuoi_so_vni(&raws, cac_doan, i, &mut ket_qua);
+        }
+    }
 
     // Pass 1: nhận diện cấu trúc span (URL, email, đường dẫn, code, emoticon).
     let mut i = 0;

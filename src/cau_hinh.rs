@@ -28,6 +28,26 @@ pub enum KieuTelex {
     DayDu,
 }
 
+/// Kiểu gõ tiếng Việt.
+///
+/// Cadence hỗ trợ nhiều kiểu gõ; người dùng chọn một kiểu rõ ràng qua cấu
+/// hình. Mặc định là [`KieuGo::Telex`] để giữ hành vi của người dùng hiện tại.
+///
+/// Hai kiểu gõ không hoạt động đồng thời trong cùng phiên; mỗi phiên dùng
+/// đúng một `KieuGo`. Telex và VNI dùng chung `BoDatDau` (nguyên âm chính),
+/// parser âm tiết, render Unicode, phân đoạn, ngữ cảnh, selection và
+/// cursor/provenance; chỉ khác cách diễn giải raw action thành ý định chữ Việt
+/// (xem RFC 0020).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum KieuGo {
+    /// Telex: phím chữ `s/f/r/x/j/z` (dấu thanh), `w/a/e/o/d` (hình chữ).
+    #[default]
+    Telex,
+    /// VNI: digit `1..=5` (dấu thanh), `6/7/8` (mũ/móc/trăng), `9` (đ).
+    Vni,
+}
+
 /// Quy tắc đặt dấu thanh trên nguyên âm của âm tiết.
 ///
 /// `HienDai` đặt dấu theo quy tắc hiện đại (VD: `hòa`, `hóa`). `TruyenThong`
@@ -83,13 +103,15 @@ pub enum ChinhSachLuaChon {
 pub struct CauHinh {
     /// Số thao tác tối đa một phiên được giữ trước khi từ chối thêm.
     gioi_han_thao_tac: usize,
-    /// Kiểu Telex (cân bằng hay đầy đủ).
+    /// Kiểu gõ (Telex mặc định).
+    kieu_go: KieuGo,
+    /// Kiểu Telex (cân bằng hay đầy đủ) - chỉ dùng khi `kieu_go == Telex`.
     kieu_telex: KieuTelex,
     /// Quy tắc đặt dấu thanh (hiện đại hay truyền thống).
     quy_tac_dat_dau: QuyTacDatDau,
     /// Dạng Unicode output (NFC hay NFD).
     dang_unicode: DangUnicode,
-    /// Chính sách lựa chọn raw/Telex theo ngữ cảnh (Phase 3).
+    /// Chính sách lựa chọn raw/biến đổi theo ngữ cảnh (Phase 3).
     chinh_sach_lua_chon: ChinhSachLuaChon,
 }
 
@@ -115,6 +137,7 @@ impl CauHinh {
     pub fn mac_dinh() -> Self {
         Self {
             gioi_han_thao_tac: GIOI_HAN_MAC_DINH,
+            kieu_go: KieuGo::Telex,
             kieu_telex: KieuTelex::CanBang,
             quy_tac_dat_dau: QuyTacDatDau::HienDai,
             dang_unicode: DangUnicode::Nfc,
@@ -142,6 +165,18 @@ impl CauHinh {
                 toi_da: GIOI_HAN_TOI_DA,
             })
         }
+    }
+
+    /// Trả kiểu gõ hiện tại (Telex hoặc VNI). Mặc định `Telex`.
+    #[must_use]
+    pub fn kieu_go(self) -> KieuGo {
+        self.kieu_go
+    }
+
+    /// Đặt kiểu gõ. Hai kiểu gõ không hoạt động đồng thời trong cùng phiên;
+    /// mỗi phiên dùng đúng một `KieuGo`.
+    pub fn dat_kieu_go(&mut self, kieu_go: KieuGo) {
+        self.kieu_go = kieu_go;
     }
 
     /// Trả kiểu Telex hiện tại.

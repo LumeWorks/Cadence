@@ -15,6 +15,8 @@ use crate::ngu_canh::BangChungLuaChon;
 pub enum TraceKetQua {
     /// Đoạn được biến đổi Telex.
     Telex,
+    /// Đoạn được biến đổi VNI.
+    Vni,
     /// Đoạn giữ nguyên bản (raw).
     NguyenBan,
 }
