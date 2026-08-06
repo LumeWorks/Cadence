@@ -1,8 +1,45 @@
 # CHANGELOG
 
-## [0.1.0] - 2026-08-06
+## [2026.1.0] - 2026-08-06
 
-Phát hành đầu tiên. Lõi gõ tiếng Việt Telex đầy đủ, phân đoạn ngữ cảnh,
+Bản phát hành công khai đầu tiên. Telex + VNI, phân đoạn ngữ cảnh, code/chat
+preservation, Unicode NFC/NFD, raw history/replay, trace, serde, no_std.
+
+### Thêm
+
+- **VNI engine** (`src/kieu_go/vni.rs`): digit `1..=5` dấu thanh, `6/7/8/9`
+  hình chữ (mũ/móc/trăng/đ), ươ đặc biệt, thứ tự đảo, thay dấu, escape.
+- **`KieuGo` enum** (`Telex`, `Vni`) + `CauHinh::kieu_go()` /
+  `dat_kieu_go()`. Mặc định `Telex`.
+- **Kiến trúc nhiều kiểu gõ** (RFC 0020): enum dispatch, không dynamic
+  dispatch, lớp dùng chung (`don_vi`, `bo_dat_dau`, `am_tiet`, `render`,
+  `lua_chon`, `phan_doan`, `ngu_canh`, `anh_xa`, `trace`).
+- **Bộ đặt dấu chung** (`src/kieu_go/bo_dat_dau.rs`): `tim_nguyen_am_chinh`
+  dùng chung Telex + VNI. Cải thiện `uy`/`ay` (bán âm `y`) và `qu`+`y` (nucleus
+  → `quý`, `thủy`, `khuỷu`).
+- **Nhận diện chuỗi số kỹ thuật VNI** (RFC 0022): 2+ digit VNI + âm tiết
+  KhongHopLe → raw (`sha256`, `h264`, `user123`). Nhận diện bằng cấu trúc,
+  không từ điển.
+- **Trace VNI** (`TraceKetQua::Vni`): trace phân biệt Telex/VNI. Bằng chứng
+  mới: `DauThanhVni`, `DauChuVni`, `ChuoiSoKyThuat`, `ChuoiPhienBan`.
+- **RFC 0020–0024**: kiến trúc nhiều kiểu gõ, quy tắc VNI, VNI và chuỗi kỹ
+  thuật, escape/hoàn tác VNI, hệ phiên bản Cadence.
+- **`docs/VERSIONING.md`**: hệ phiên bản calendar/change/patch.
+- **`docs/MIGRATION_0.1_TO_2026.1.md`**: migration guide.
+- **`docs/research/vni-sources.md`**: nguồn nghiên cứu VNI.
+- **VNI tests**: dấu thanh, hình chữ, từ/âm tiết, xung đột số, mixed
+  content, escape, property (7), soak (4).
+- 717 tests (40 test files) across all feature combinations.
+
+### Không phá code
+
+- `CauHinh::mac_dinh()` vẫn chọn Telex.
+- Toàn bộ 655 test Telex cũ xanh, không sửa expected.
+- `dat_kieu_telex` vẫn dùng (chỉ khi `kieu_go == Telex`).
+
+## [0.1.0] - 2026-08-06 — Mốc khóa lõi trước phát hành công khai
+
+Phát hành nội bộ. Lõi gõ tiếng Việt Telex đầy đủ, phân đoạn ngữ cảnh,
 ổn định API, 655 tests across all feature combinations.
 
 ### Phase 4 - Ổn định và kiểm tra

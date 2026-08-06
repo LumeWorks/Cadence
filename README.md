@@ -4,27 +4,49 @@ Cadence - Gõ mọi thứ bạn cần.
 
 Cadence là lõi gõ tiếng Việt thế hệ mới viết bằng Rust, kiến trúc hiện đại và an toàn, có thể nhúng vào nhiều môi trường (Linux, Windows, mobile, trình soạn thảo, công cụ terminal, dự án Rust khác, binding FFI).
 
-## Trạng thái 0.1.0
+## Trạng thái 2026.1.0
 
-Cadence hiện có Telex engine đầy đủ **và** phân đoạn ngữ cảnh (Phase 3),
-đã được ổn định và kiểm tra cho phát hành `0.1.0` (Phase 4):
+Cadence hiện có Telex **và** VNI engine đầy đủ, phân đoạn ngữ cảnh,
 biến đổi hình chữ (â, ă, ê, ô, ơ, ư, đ), dấu thanh (sắc, huyền, hỏi, ngã,
-nặng), escape (lặp phím modifier), phân tích âm tiết để lựa chọn raw/Telex,
-và Unicode NFC/NFD output. Lịch sử thao tác raw là nguồn sự thật;
-`noi_dung_goc()` trả byte-for-byte raw.
+nặng), escape (lặp phím/digit modifier), phân tích âm tiết để lựa chọn
+raw/biến đổi, và Unicode NFC/NFD output. Lịch sử thao tác raw là nguồn sự
+thật; `noi_dung_goc()` trả byte-for-byte raw.
 
-Phase 3 thêm triết lý "Gõ mọi thứ bạn cần": lịch sử được chia thành đoạn theo
-loại ký tự, mỗi đoạn quyết định Telex hay raw độc lập. Code, URL, email, đường
-dẫn, namespace `::`, phép gán `=`, emoticon, teencode lặp được nhận diện và
-giữ nguyên bản; tiếng Việt hợp lệ được biến đổi. Không cần bật/tắt bộ gõ khi
-chuyển context trong cùng phiên.
+Cadence giữ nguyên code/chat: `sha256`, `h264`, `v1.2.3`, `127.0.0.1`,
+`user123`, `x86_64` không bị biến đổi. Tiếng Việt hợp lệ được biến đổi.
+Không cần bật/tắt bộ gõ khi chuyển context trong cùng phiên.
 
-Phase 4 ổn định API, thêm tài liệu bảo mật/MSRV/bất biến, rule matrix tests,
-editing/Unicode matrix, property/serde tests, soak tests, và sửa một bug
-cursor. 655 tests across all feature combinations.
+Xem [`docs/VERSIONING.md`](docs/VERSIONING.md) cho hệ phiên bản
+calendar/change/patch và RFC 0020–0024 cho chi tiết VNI.
 
-Xem [`docs/rfc/0013-triet-ly-go-moi-thu.md`](docs/rfc/0013-triet-ly-go-moi-thu.md)
-cho triết lý đầy đủ và RFC 0014–0019 cho chi tiết từng phần.
+## Sử dụng
+
+```toml
+[dependencies]
+cadence = { package = "cadence-ime", version = "2026.1" }
+```
+
+```rust
+use cadence::{BoGo, CauHinh, KieuGo, KetQuaXuLy};
+
+// Telex (mặc định)
+let bo_go = BoGo::new(CauHinh::mac_dinh()).expect("cau hinh mac dinh luon hop le");
+let mut phien = bo_go.tao_phien();
+for c in "tieengs".chars() {
+    phien.them_ky_tu(c);
+}
+assert_eq!(phien.ban_chup().noi_dung(), "tiếng");
+
+// VNI
+let mut c = CauHinh::mac_dinh();
+c.dat_kieu_go(KieuGo::Vni);
+let bo_vni = BoGo::new(c).expect("hop le");
+let mut phien_vni = bo_vni.tao_phien();
+for c in "tieng61".chars() {
+    phien_vni.them_ky_tu(c);
+}
+assert_eq!(phien_vni.ban_chup().noi_dung(), "tiếng");
+```
 
 ## Phạm vi của core
 
@@ -34,9 +56,9 @@ Cadence chỉ là lõi xử lý nhập liệu thuần Rust.
 
 * Quản lý phiên soạn thảo.
 * Lịch sử thao tác không phá hủy.
-* Telex engine: hình chữ, dấu thanh, escape.
-* Phân tích âm tiết và lựa chọn raw/Telex.
-* Phân đoạn và nhận diện ngữ cảnh kỹ thuật (Phase 3).
+* Telex + VNI engine: hình chữ, dấu thanh, escape.
+* Phân tích âm tiết và lựa chọn raw/biến đổi.
+* Phân đoạn và nhận diện ngữ cảnh kỹ thuật.
 * Chính sách lựa chọn `TuNhien`/`UuTienTiengViet`/`UuTienNguyenBan`.
 * Trace quyết định có cấu trúc (feature `trace`).
 * Snapshot văn bản trung lập nền tảng.
@@ -53,34 +75,6 @@ Cadence chỉ là lõi xử lý nhập liệu thuần Rust.
 * Logic nhận diện ứng dụng.
 
 Đó là vai trò của CadenceRuntime - repository runtime riêng.
-
-## Sử dụng
-
-```toml
-[dependencies]
-cadence = { package = "cadence-ime", version = "0.1" }
-```
-
-```rust
-use cadence::{BoGo, CauHinh, KetQuaXuLy};
-
-let bo_go = BoGo::new(CauHinh::mac_dinh()).expect("cau hinh mac dinh luon hop le");
-let mut phien = bo_go.tao_phien();
-
-// Telex: gõ "tieengs" → "tiếng"
-for c in "tieengs".chars() {
-    phien.them_ky_tu(c);
-}
-assert_eq!(phien.ban_chup().noi_dung(), "tiếng");
-
-// Raw history là nguồn sự thật
-assert_eq!(phien.ban_chup().noi_dung_goc(), "tieengs");
-
-// Commit
-if let KetQuaXuLy::ChapNhan { noi_dung } = phien.chap_nhan() {
-    assert_eq!(noi_dung, "tiếng");
-}
-```
 
 ## Tính năng
 

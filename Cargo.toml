@@ -1,12 +1,12 @@
 [package]
 name = "cadence-ime"
-version = "0.1.0"
+version = "2026.1.0"
 edition = "2024"
 rust-version = "1.85"
 license = "MPL-2.0"
 description = "A safe and embeddable Vietnamese typing engine"
 readme = "README.md"
-keywords = ["vietnamese", "input", "ime", "telex"]
+keywords = ["vietnamese", "input", "ime", "telex", "vni"]
 categories = ["text-processing", "internationalization"]
 repository = "https://github.com/LumeWorks/Cadence"
 
