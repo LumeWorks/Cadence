@@ -11,7 +11,7 @@
 // sinh hàm main không có rustdoc nên tắt missing_docs cục bộ ở đây.
 #![allow(missing_docs)]
 
-use cadence::{BoGo, CauHinh, PhienGo};
+use cadence::{BoGo, CauHinh, KieuGo, PhienGo};
 use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main};
 
 fn tao_phien(gioi_han: usize) -> PhienGo {
@@ -274,6 +274,130 @@ fn phase3_teencode_lap(c: &mut Criterion) {
     });
 }
 
+/// Tạo phiên VNI với giới hạn thao tác.
+fn tao_phien_vni(gioi_han: usize) -> PhienGo {
+    let mut cau_hinh = CauHinh::mac_dinh();
+    cau_hinh
+        .dat_gioi_han_thao_tac(gioi_han)
+        .expect("gioi han hop le");
+    cau_hinh.dat_kieu_go(KieuGo::Vni);
+    let bo_go = BoGo::new(cau_hinh).expect("cau hinh hop le");
+    bo_go.tao_phien()
+}
+
+/// VNI shape + tone: gõ `a61` → ấ.
+fn vni_a61(c: &mut Criterion) {
+    c.bench_function("vni_a61", |b| {
+        b.iter_batched(
+            || tao_phien_vni(4096),
+            |mut phien| {
+                for c in "a61".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// VNI từ tiếng Việt ngắn: `tieng61` → tiếng.
+fn vni_tu_ngan(c: &mut Criterion) {
+    c.bench_function("vni_tu_ngan", |b| {
+        b.iter_batched(
+            || tao_phien_vni(4096),
+            |mut phien| {
+                for c in "tieng61".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// VNI từ dài: `nguo7i2` → người.
+fn vni_tu_dai(c: &mut Criterion) {
+    c.bench_function("vni_tu_dai", |b| {
+        b.iter_batched(
+            || tao_phien_vni(4096),
+            |mut phien| {
+                for c in "nguo7i2".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// VNI modifier replacement: `a12` → à.
+fn vni_modifier_replacement(c: &mut Criterion) {
+    c.bench_function("vni_modifier_replacement", |b| {
+        b.iter_batched(
+            || tao_phien_vni(4096),
+            |mut phien| {
+                for c in "a12".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// VNI technical number: `sha256` → sha256 (raw).
+fn vni_technical_number(c: &mut Criterion) {
+    c.bench_function("vni_technical_number", |b| {
+        b.iter_batched(
+            || tao_phien_vni(4096),
+            |mut phien| {
+                for c in "sha256".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// VNI mixed code/Vietnamese: `toi6_dang_fix_h264`.
+fn vni_mixed(c: &mut Criterion) {
+    c.bench_function("vni_mixed", |b| {
+        b.iter_batched(
+            || tao_phien_vni(4096),
+            |mut phien| {
+                for c in "toi6_dang_fix_h264".chars() {
+                    phien.them_ky_tu(c);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
+/// VNI token 128 digit modifiers: stability under load.
+fn vni_token_128(c: &mut Criterion) {
+    c.bench_function("vni_token_128", |b| {
+        b.iter_batched(
+            || tao_phien_vni(4096),
+            |mut phien| {
+                for i in 0..128 {
+                    let ch = if i % 3 == 0 { 'a' } else { '1' };
+                    phien.them_ky_tu(ch);
+                }
+                black_box(phien.ban_chup().noi_dung());
+            },
+            BatchSize::SmallInput,
+        );
+    });
+}
+
 criterion_group!(
     benches,
     them_ascii_token_ngan,
@@ -291,5 +415,12 @@ criterion_group!(
     phase3_url,
     phase3_namespace,
     phase3_teencode_lap,
+    vni_a61,
+    vni_tu_ngan,
+    vni_tu_dai,
+    vni_modifier_replacement,
+    vni_technical_number,
+    vni_mixed,
+    vni_token_128,
 );
 criterion_main!(benches);
