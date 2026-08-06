@@ -84,17 +84,23 @@ Lịch sử thao tác tồn tại trong bộ nhớ phiên và bị xóa khi `dat
 
 Audit `src` cho các pattern gây panic:
 
-| Pattern | Số trong `src` | Ghi chú |
-|---|---|---|
-| `panic!` | 0 | — |
-| `unreachable!` | 0 | — |
-| `unimplemented!` | 0 | — |
-| `todo!` | 0 | — |
-| `unwrap()` | 0 | — |
-| `expect(` | 0 | — |
-| `unsafe` | 1 | chỉ `#![forbid(unsafe_code)]` (không phải usage) |
-| `TODO`/`FIXME` | 0 | (đã dọn TODO duy nhất ở commit contract) |
-| indexing trực tiếp `a[i]` | có | chỉ trên index đã kiểm tra boundary (`doan.bat_dau..doan.ket_thuc` từ phân đoạn, `usize::min` cho cursor) |
+| Pattern | Số trong `src` (production) | `src` `#[cfg(test)]` | Ghi chú |
+|---|---|---|---|
+| `panic!` | 0 | 2 | 2 trong inline `#[cfg(test)]` của `render.rs`/`telex.rs` (test assertion, cho phép) |
+| `unreachable!` | 0 | 0 | — |
+| `unimplemented!` | 0 | 0 | — |
+| `todo!` | 0 | 0 | — |
+| `unwrap()` | 0 | 0 | — |
+| `expect(` | 0 | 1 | 1 trong inline `#[cfg(test)]` của `render.rs` (test assertion, cho phép) |
+| `unsafe` | 0 | 0 | chỉ `#![forbid(unsafe_code)]` (không phải usage) |
+| `TODO`/`FIXME` | 0 | 0 | (đã dọn TODO duy nhất ở commit contract) |
+| indexing trực tiếp `a[i]` | có | — | chỉ trên index đã kiểm tra boundary (`doan.bat_dau..doan.ket_thuc` từ phân đoạn, `usize::min` cho cursor) |
+
+Production (non-test) `src` không có `panic!`/`expect(`/`unwrap()`/`unreachable!`/`todo!`.
+Các `panic!`/`expect(` trong `src` đều nằm trong inline `#[cfg(test)] mod tests`, dùng
+cho test assertion, nhất quán với `CONTRIBUTING.md` (chỉ `expect()`/`panic!` khi mô tả
+invariant trong test). Chúng không compile vào bản production và không thể bị kích hoạt
+bởi public input.
 
 `debug_assert!` trong `vi_tri.rs::tai_byte` kiểm tra `is_char_boundary` — đây
 là invariant, không phải panic trên input; nếu vi phạm là bug nội bộ.

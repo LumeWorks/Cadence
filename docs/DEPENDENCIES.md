@@ -80,11 +80,16 @@ Chạy: `cargo deny check` (cần cài `cargo-deny`).
 `cargo audit` quét `Cargo.lock` theo advisory database. Chạy: `cargo audit`
 (cần cài `cargo-audit` + network cho advisory db).
 
-## Trạng thái môi trường audit hiện tại
+## Trạng thái môi trường audit phát hành 0.1.0
 
-- `cargo-deny`: **chưa cài** trong môi trường audit này. Config `deny.toml`
-  sẵn; CI sẽ chạy khi tool khả dụng. Không claim gate đã xanh.
-- `cargo-audit`: **chưa cài**. Sẽ chạy trong CI scheduled (xem `.github/workflows`).
+- `cargo-deny`: **đã cài và chạy xanh** trong audit phát hành 0.1.0
+  (`cargo deny check` → advisories/bans/licenses/sources ok, chỉ warning
+  `license-not-encountered` cho license allowlist không dùng). Xem
+  `docs/RELEASE_CANDIDATE_REPORT.md`.
+- `cargo-audit`: **đã cài và chạy xanh** trong audit phát hành 0.1.0
+  (`cargo audit` → không advisory). 98 crate dependency trong `Cargo.lock`.
+- Trước đó (Phase 4) hai tool chưa cài trong môi trường audit; cấu hình
+  `deny.toml` đã sẵn sàng. CI cũng chạy khi tool khả dụng.
 
 ## Chính sách thêm dependency
 

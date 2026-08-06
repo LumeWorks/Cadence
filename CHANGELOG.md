@@ -45,7 +45,7 @@ sửa một bug cursor.
   navigation liên tục, chen/xóa lặp, mọi tổ hợp cấu hình, emoji+combining,
   giới hạn thấp, xóa đến rỗng).
 - **Dev-dependency**: `serde_json` cho round-trip serde tests.
-- 650 tests (34 test files) across all feature combinations.
+- 655 tests (34 test files) across all feature combinations.
 
 ### Sửa
 
@@ -64,6 +64,20 @@ sửa một bug cursor.
 - NFC/NFD canonical equivalent cho mọi shape × tone.
 - Serde round-trip cho mọi public data type.
 - 1000 ký tự Telex liên tục: không panic, cursor hợp lệ.
+
+### Hạn chế đã biết (0.1.0)
+
+- **Ký tự Việt HOA dựng sẵn** (vd `Ế`, `Đ`) không được `phan_tich_ky_tu` nhận diện
+  khi gõ trực tiếp (to_ascii_lowercase không đổi non-ASCII). Ký tự đó được giữ
+  raw (an toàn), không parse. Workaround: dùng Telex để tạo chữ hoa (vd `Dd` → `Đ`).
+- **Chỉ hỗ trợ Telex**. Chưa có VNI, VIQR, tự điển, autocomplete (theo phạm vi 0.1).
+- **Chưa có differential testing harness** (so sánh black-box với engine tham chiếu).
+  Correctness dựa vào 655 test, property, soak 2 triệu thao tác và rule matrix.
+  Kế hoạch 0.2.
+- **Không có FFI/adapter nền tảng** (Fcitx5, IBus, TSF, Wayland). Core là Rust
+  library; LCand (Linux) và WCand (Windows) là repository riêng.
+- **`cargo-deny`/`cargo-audit`** là CI tool, không phải runtime dependency. Gate
+  đã chạy xanh trong audit phát hành (xem `docs/RELEASE_CANDIDATE_REPORT.md`).
 
 ## [Unreleased] - Phase 3
 

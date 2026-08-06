@@ -21,7 +21,7 @@ chuyển context trong cùng phiên.
 
 Phase 4 ổn định API, thêm tài liệu bảo mật/MSRV/bất biến, rule matrix tests,
 editing/Unicode matrix, property/serde tests, soak tests, và sửa một bug
-cursor. 650 tests across all feature combinations.
+cursor. 655 tests across all feature combinations.
 
 Xem [`docs/rfc/0013-triet-ly-go-moi-thu.md`](docs/rfc/0013-triet-ly-go-moi-thu.md)
 cho triết lý đầy đủ và RFC 0014–0019 cho chi tiết từng phần.
