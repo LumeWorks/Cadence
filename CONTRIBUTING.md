@@ -51,7 +51,7 @@ cargo bench
   `serde_json` (dev, round-trip serde tests).
 * **Không thêm `unsafe`.** `unsafe_code` bị `forbid`.
 * **Không triển khai các thứ ngoài phạm vi core** (FFI, GUI, IPC, network, thread,
-  async runtime, nhận diện ứng dụng) - đó là vai trò của LCand/WCand.
+  async runtime, nhận diện ứng dụng) - đó là vai trò của CadenceRuntime.
 * **Giữ `no_std + alloc` build xanh.** Không gọi filesystem, env var, stdout hay
   API chỉ có trong `std`. Error type phải hoạt động khi tắt `std`; chỉ implement
   `std::error::Error` dưới `#[cfg(feature = "std")]`.

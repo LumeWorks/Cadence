@@ -56,7 +56,7 @@ cache incremental phức tạp.
 ## Không gian không thuộc core
 
 Cadence không chứa FFI, GUI, IPC, network, thread, async runtime, hay logic
-nhận diện ứng dụng. Đó là vai trò của LCand (Linux) và WCand (Windows).
+nhận diện ứng dụng. Đó là vai trò của CadenceRuntime.
 
 ## RFC
 

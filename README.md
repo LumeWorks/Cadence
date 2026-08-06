@@ -52,7 +52,7 @@ Cadence chỉ là lõi xử lý nhập liệu thuần Rust.
 * Async runtime, thread nền, network.
 * Logic nhận diện ứng dụng.
 
-Đó là vai trò của LCand (Linux) và WCand (Windows) - ba repository độc lập.
+Đó là vai trò của CadenceRuntime - repository runtime riêng.
 
 ## Sử dụng
 

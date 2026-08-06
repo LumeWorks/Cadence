@@ -113,4 +113,4 @@ liệu nhạy cảm.** Host tích hợp nên:
 ## Không thuộc core
 
 Cadence không có FFI, GUI, CLI sản phẩm, IPC, D-Bus, nhận diện ứng dụng, async
-runtime. Đó là vai trò của LCand (Linux) và WCand (Windows) — repository riêng.
+runtime. Đó là vai trò của CadenceRuntime — repository riêng.

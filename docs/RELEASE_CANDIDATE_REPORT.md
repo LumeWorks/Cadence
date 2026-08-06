@@ -163,7 +163,7 @@ test + property + soak 2M + rule matrix. Kế hoạch 0.2 (xem CHANGELOG hạn c
    (an toàn). Workaround: Telex (`Dd` → `Đ`).
 2. Chỉ Telex (chưa VNI/VIQR/từ điển/autocomplete) — phạm vi 0.1.
 3. Chưa có differential harness — kế hoạch 0.2.
-4. Không FFI/adapter nền tảng — LCand/WCand riêng.
+4. Không FFI/adapter nền tảng — CadenceRuntime riêng.
 5. `cargo-deny`/`cargo-audit` là CI tool (không runtime dep), đã chạy xanh audit.
 
 ## 51. Release blockers còn lại

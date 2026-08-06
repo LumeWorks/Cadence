@@ -5,7 +5,7 @@ Trạng thái: Chấp thuận - Phase 1.
 ## Vấn đề
 
 Cadence phải là một library crate duy nhất, nhúng được vào nhiều môi trường
-(LCand, WCand, desktop, mobile, trình soạn thảo, terminal, dự án Rust, binding
+(CadenceRuntime, desktop, mobile, trình soạn thảo, terminal, dự án Rust, binding
 FFI) mà không kéo theo phụ thuộc nền tảng. Lõi phải tách bạch khỏi mọi thứ không
 phải xử lý nhập liệu.
 
@@ -32,7 +32,7 @@ Lịch sử thao tác là nguồn sự thật duy nhất; snapshot luôn dựng 
 
 * **Workspace nhiều crate:** bị loại vì Phase 1 chưa cần và tăng độ phức tạp nhúng.
 * **Đồng bộ trực tiếp `String`:** bị loại vì dễ sinh trạng thái không nhất quán.
-* **Chứa FFI/IPC trong repo này:** bị loại rõ ràng - đó là vai trò của LCand/WCand.
+* **Chứa FFI/IPC trong repo này:** bị loại rõ ràng - đó là vai trò của CadenceRuntime.
 
 ## Bất biến
 

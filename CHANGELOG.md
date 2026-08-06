@@ -75,7 +75,7 @@ sửa một bug cursor.
   Correctness dựa vào 655 test, property, soak 2 triệu thao tác và rule matrix.
   Kế hoạch 0.2.
 - **Không có FFI/adapter nền tảng** (Fcitx5, IBus, TSF, Wayland). Core là Rust
-  library; LCand (Linux) và WCand (Windows) là repository riêng.
+  library; CadenceRuntime là repository riêng.
 - **`cargo-deny`/`cargo-audit`** là CI tool, không phải runtime dependency. Gate
   đã chạy xanh trong audit phát hành (xem `docs/RELEASE_CANDIDATE_REPORT.md`).
 
