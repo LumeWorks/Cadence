@@ -254,7 +254,15 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ needs.prepare.outputs.version }}"
-          if cargo info "cadence-ime@${VERSION}" >/dev/null 2>&1; then
+          API_URL="https://crates.io/api/v1/crates/cadence-ime/${VERSION}"
+
+          if curl \
+            --fail \
+            --silent \
+            --show-error \
+            --location \
+            --header "User-Agent: LumeWorks-Cadence-release" \
+            "$API_URL" >/dev/null; then
             echo "already_published=true" >> "$GITHUB_OUTPUT"
             echo "Version $VERSION is already published on crates.io"
           else
@@ -306,16 +314,25 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ needs.prepare.outputs.version }}"
+          API_URL="https://crates.io/api/v1/crates/cadence-ime/${VERSION}"
+
           for i in $(seq 1 12); do
-            if cargo info "cadence-ime@${VERSION}" >/dev/null 2>&1; then
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              --location \
+              --header "User-Agent: LumeWorks-Cadence-release" \
+              "$API_URL" >/dev/null; then
               echo "Version $VERSION confirmed on crates.io after $i attempt(s)"
               exit 0
             fi
-            echo "Attempt $i: version not yet visible on crates.io, waiting 10s..."
+            echo "Attempt $i: version not visible yet, waiting 10s..."
             sleep 10
           done
-          echo "::warning::Version $VERSION was uploaded but not yet visible on crates.io after 120s."
-          echo "::warning::Check https://crates.io/crates/cadence-ime manually."
+
+          echo "::error::Version $VERSION was not found on crates.io after 120s."
+          exit 1
 
   github-release:
     name: GitHub Release
