@@ -63,7 +63,7 @@ Tăng khi chỉ có:
 
 ## Tác động public API
 
-Không thêm API mới. `Cargo.toml` version = `2026.1.0`.
+Không thêm API mới. `Cargo.toml` version = `2026.1.1`.
 
 ## Tác động hiệu năng / serde / no_std
 
