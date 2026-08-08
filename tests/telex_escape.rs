@@ -106,16 +106,20 @@ fn zz_khong_escape() {
     assert_eq!(go("zz"), "zz");
 }
 
-/// Escape tone key ở xa: `as` → `á`, `w` literal, `s` → escape?
-/// `as`→`á`, `w`→`áw` (w literal), `s`→`áws` (s thay dấu? hay escape?).
-/// Tone `s` gần nhất là ở vị trí 1. `s` thứ 3 lặp `s` → escape.
+/// Tone key xen giữa shape: `asws` với shape backward (w reach back tới `á`).
+///
+/// `as`→`á`, `w` reach back → `ắ` (trăng trên á), `s` cuối áp sắc lại (đã
+/// sắc) → `ắ`. Phím `w` ngắt tracking tone nên `s` cuối không escape. Hành
+/// vi xác định (không còn ambiguous như forward cũ). `noi_dung_goc` giữ raw.
 #[test]
 fn escape_tone_key_xa() {
     let kq = go("asws");
-    // `as`→`á`, `w`→`áw`, `s`→ escape (lặp `s`) → hoàn tác `á`→`a` + `s` literal.
-    // Nhưng `w` ở giữa → `aw` + `s` + `s` → `aws`? Hoặc `á` + `w` + `s` → escape `á`→`a`, `s` literal → `aws`.
-    assert!(
-        kq.contains("aw") || kq.contains("a"),
-        "kỳ vọng aw hoặc a, được {kq}"
-    );
+    assert_eq!(kq, "ắ", "asws -> ắ (w reach back, s cuối dư), được {kq}");
+    // Bất biến raw giữ nguyên byte-for-byte.
+    let bo_go = BoGo::new(CauHinh::mac_dinh()).expect("cau hinh hop le");
+    let mut p = bo_go.tao_phien();
+    for c in "asws".chars() {
+        p.them_ky_tu(c);
+    }
+    assert_eq!(p.ban_chup().noi_dung_goc(), "asws");
 }

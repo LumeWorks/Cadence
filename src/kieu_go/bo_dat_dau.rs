@@ -21,20 +21,6 @@ use super::don_vi::{DonViRender, NoiDungDonVi};
 use crate::cau_hinh::QuyTacDatDau;
 use alloc::vec::Vec;
 
-/// Tìm index của đơn vị nguyên âm cuối cùng trong `don_vi` (từ `min_raw` trở đi).
-pub(crate) fn tim_nguyen_am_cuoi(don_vi: &[DonViRender], min_raw: usize) -> Option<usize> {
-    don_vi
-        .iter()
-        .enumerate()
-        .filter(|(_, u)| u.raw_bat_dau >= min_raw)
-        .rev()
-        .find(|(_, u)| match &u.noi_dung {
-            NoiDungDonVi::Chu(chu) => chu.chu_goc.la_nguyen_am(),
-            NoiDungDonVi::Chuong(_) => false,
-        })
-        .map(|(i, _)| i)
-}
-
 /// Trả `true` nếu đơn vị tại `idx` là nguyên âm `chu_goc` không dấu hình chữ.
 fn la_nguyen_am_khong_dau_chu(don_vi: &[DonViRender], idx: usize, goc: ChuGoc) -> bool {
     matches!(&don_vi[idx].noi_dung, NoiDungDonVi::Chu(chu) if chu.chu_goc == goc

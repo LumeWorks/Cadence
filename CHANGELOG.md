@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## [2026.1.1] - 2026-08-08
+
+Patch sửa linh hoạt thứ tự tone/hình chữ cho Telex — dấu chèn ở khắp nơi
+trong từ vẫn ra đúng chữ (parity VNI, RFC 0021).
+
+### Sửa
+
+- **Thứ tự linh hoạt Telex** (`src/kieu_go/telex.rs`): phím hình chữ
+  (`w`/`a`/`e`/`o`/`d`) reach back tới base trần trong đoạn, không nhất thiết
+  ngay sau base. `oiw`→ơi, `voiws`→với, `moiws`→mới, `uoiw`→ươi,
+  `khongo`→không, `uongw`→ương. Bỏ forward-adjacency path cũ; shape giờ đi
+  một đường backward search + mutate tại chỗ (giống VNI `ap_dung_modifier`).
+- **Chặn reshape tiếng Anh** (`src/kieu_go/lua_chon.rs` Rule 2): shape ở xa
+  (reach back qua ký tự khác) + âm tiết không hợp lệ → raw. Giữ `cadence`,
+  `release`, `HTTPServer`, `deadbeefcafe` raw; shape liền base (`ddm`→đm) và
+  tone-only (`text`→tẽt, `use`→úe) không bị chặn.
+- **`co_hinh_xa` flag** (`src/kieu_go/don_vi.rs`): engine báo shape reach back
+  qua ký tự khác; `lua_chon` dùng để chặn reshape rác. VNI luôn `false`.
+
+### Thêm
+
+- `tests/telex_thu_tu_linh_hoat.rs`: 49 test thứ tự linh hoạt + regression
+  (tiếng Việt, escape, side-effect parity VNI, tiếng Anh không reshape, case).
+- 10 unit test trong `telex.rs` (backward search, ươ hai hướng, escape
+  backward, case preservation, không restroke chữ đã có dấu).
+- RFC 0006: mục "Thứ tự linh hoạt" + "Chặn reshape tiếng Anh" + bất biến mới.
+- `INVARIANTS.md` §11: bất biến shape reach back + gate, liên kết test.
+
+### Không phá code
+
+- 776 test pass (từ 717), 0 warning clippy, fmt clean.
+- Toàn bộ corpus tiếng Anh raw giữ nguyên (4 test corpus xanh).
+- `noi_dung_goc()` byte-for-byte raw không đổi; không thêm API mới.
+- `asws` chốt thành `ắ` (xác định, không còn ambiguous như forward cũ).
+
 ## [2026.1.0] - 2026-08-06
 
 Bản phát hành công khai đầu tiên. Telex + VNI, phân đoạn ngữ cảnh, code/chat

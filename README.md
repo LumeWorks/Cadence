@@ -4,7 +4,7 @@ Cadence - Gõ mọi thứ bạn cần.
 
 Cadence là lõi gõ tiếng Việt thế hệ mới viết bằng Rust, kiến trúc hiện đại và an toàn, có thể nhúng vào nhiều môi trường (Linux, Windows, mobile, trình soạn thảo, công cụ terminal, dự án Rust khác, binding FFI).
 
-## Trạng thái 2026.1.0
+## Trạng thái 2026.1.1
 
 Cadence hiện có Telex **và** VNI engine đầy đủ, phân đoạn ngữ cảnh,
 biến đổi hình chữ (â, ă, ê, ô, ơ, ư, đ), dấu thanh (sắc, huyền, hỏi, ngã,
@@ -15,6 +15,9 @@ thật; `noi_dung_goc()` trả byte-for-byte raw.
 Cadence giữ nguyên code/chat: `sha256`, `h264`, `v1.2.3`, `127.0.0.1`,
 `user123`, `x86_64` không bị biến đổi. Tiếng Việt hợp lệ được biến đổi.
 Không cần bật/tắt bộ gõ khi chuyển context trong cùng phiên.
+
+Thứ tự tone/hình chữ linh hoạt: dấu chèn ở khắp nơi trong từ vẫn ra đúng
+chữ — `voiws`→với, `khongo`→không, `oiw`→ơi (parity VNI).
 
 Xem [`docs/VERSIONING.md`](docs/VERSIONING.md) cho hệ phiên bản
 calendar/change/patch và RFC 0020–0024 cho chi tiết VNI.
