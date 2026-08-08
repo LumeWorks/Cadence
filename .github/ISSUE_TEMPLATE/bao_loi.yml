@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 Lê Hùng Quang Minh
+#
+# Issue form: báo lỗi. Cấu trúc thu thập bước tái hiện, kỳ vọng vs thực tế,
+# phiên bản và môi trường để tái hiện nhanh.
+
+name: 🐞 Báo lỗi
+description: Báo cáo hành vi sai, crash, hoặc kết quả không mong đợi.
+title: "🐞 Lỗi: "
+labels: ["lỗi"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cảm ơn bạn đã báo lỗi! Hãy mô tả rõ bước tái hiện và kết quả kỳ vọng.
+        **Lưu ý bảo mật:** Không đưa nội dung gõ thật của bạn (tin nhắn, mật khẩu,
+        thông tin cá nhân) vào issue công khai. Dùng văn bản mẫu vô hại để tái hiện.
+
+  - type: input
+    id: tom_tat
+    attributes:
+      label: Tóm tắt lỗi
+      description: Một câu mô tả lỗi.
+      placeholder: "vd: Gõ `voiws` ra `voiws` thay vì `với`"
+    validations:
+      required: true
+
+  - type: textarea
+    id: buoc_tai_hien
+    attributes:
+      label: Bước tái hiện
+      description: Các bước cụ thể để gặp lỗi.
+      placeholder: |
+        1. Tạo phiên với cấu hình mặc định
+        2. Gõ chuỗi `...`
+        3. Quan sát kết quả
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: ky_vong
+    attributes:
+      label: Kết quả kỳ vọng
+      description: Những gì bạn mong đợi xảy ra.
+    validations:
+      required: true
+
+  - type: textarea
+    id: thuc_te
+    attributes:
+      label: Kết quả thực tế
+      description: Những gì thực sự xảy ra (kể cả thông báo lỗi, panic, raw output).
+    validations:
+      required: true
+
+  - type: input
+    id: phien_ban
+    attributes:
+      label: Phiên bản Cadence
+      description: Version trong `Cargo.toml` (vd `2026.1.1`).
+      placeholder: "vd: 2026.1.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kieu_go
+    attributes:
+      label: Kiểu gõ
+      options:
+        - Telex (Cân bằng)
+        - Telex (Đầy đủ)
+        - VNI
+        - Không chắc
+    validations:
+      required: true
+
+  - type: textarea
+    id: moi_truong
+    attributes:
+      label: Môi trường
+      description: Hệ điều hành, phiên bản Rust, nền tảng nhúng (nếu có).
+      placeholder: |
+        - OS: Linux/Windows/macOS
+        - Rust: stable / 1.85
+        - Nền tảng: library, FFI adapter, ...
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: bo_sung
+    attributes:
+      label: Bổ sung
+      description: Log, trace (nếu bật feature `trace`), ảnh chụp, hoặc code tái hiện nhỏ nhất.
+    validations:
+      required: false

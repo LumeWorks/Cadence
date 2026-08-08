@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 Lê Hùng Quang Minh
+#
+# Issue form: đề xuất tính năng. Thu thập vấn đề, giải pháp đề xuất, và
+# phương án thay thế để đánh giá trước khi RFC.
+
+name: ✨ Đề xuất tính năng
+description: Đề xuất tính năng mới hoặc cải tiến hành vi.
+title: "✨ Đề xuất: "
+labels: ["tính năng"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cảm ơn ý tưởng! Hãy mô tả vấn đề cần giải quyết trước khi nêu giải pháp.
+        Tính năng lớn nên kèm RFC (xem `docs/rfc/`).
+
+  - type: textarea
+    id: van_de
+    attributes:
+      label: Vấn đề cần giải quyết
+      description: Nỗi đau hoặc thiếu sót hiện tại. Tập trung vào *vấn đề*, không phải giải pháp.
+      placeholder: "vd: Gõ Telex phải đúng thứ tự dấu, người dùng gõ linh hoạt bị raw."
+    validations:
+      required: true
+
+  - type: textarea
+    id: giai_phap
+    attributes:
+      label: Giải pháp đề xuất
+      description: Hành vi mong muốn sau khi giải quyết.
+      placeholder: |
+        - Gõ `oiw` → `ơi` (shape reach back)
+        - Gõ `voiws` → `với`
+    validations:
+      required: true
+
+  - type: textarea
+    id: phuong_an_thay_the
+    attributes:
+      label: Phương án thay thế
+      description: Các cách khác đã cân nhắc và lý do loại.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: pham_vi
+    attributes:
+      label: Phạm vi
+      options:
+        - Telex
+        - VNI
+        - Chung (cả hai kiểu gõ)
+        - Khác (chọn lọc, render, phân đoạn...)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: pha_vo
+    attributes:
+      label: Tương thích ngược
+      options:
+        - label: Tính năng này không phá code/chế độ gõ hiện có.
+        - label: Tính năng này có thể phá code (cần migration/CHANGELOG).
+
+  - type: textarea
+    id: bo_sung
+    attributes:
+      label: Bổ sung
+      description: Mockup, ví dụ engine khác (unikey, ibus-unikey), tài liệu nghiên cứu.
+    validations:
+      required: false

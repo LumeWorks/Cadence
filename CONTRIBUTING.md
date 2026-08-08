@@ -63,6 +63,50 @@ cargo bench
 * Không force-push, không amend/squash commit cũ, không sửa lịch sử đã tồn tại.
 * Không commit file build, secret hoặc dữ liệu máy cá nhân.
 
+## Quy trình đóng góp
+
+Cadence làm việc chủ yếu qua **Issues → PR → Project (Kanban)**. Không commit
+thẳng lên `main` (branch được bảo vệ).
+
+### Luồng công việc
+
+1. **Mở issue** mô tả bug hoặc tính năng (dùng issue template).
+2. **Tạo branch** từ `main`: `fix/<ten>`, `feature/<ten>`, hoặc
+   `release/<version>`.
+3. **Commit** trên branch (message tiếng Việt không dấu, một bước tiến mỗi
+   commit).
+4. **Mở PR** liên kết issue (`Closes #<so>`), điền checklist PR template.
+5. **Review**: branch protection yêu cầu 1 approval + CI xanh. Admin có thể
+   bypass khi cần gấp.
+6. **Merge**: dùng merge commit (giữ lịch sử branch + PR).
+7. **Project board**: kéo issue qua cột Tồn đọng → Cần làm → Đang làm → Đang
+   review → Xong (xem `Projects` tab).
+
+### Branch
+
+* Tên branch tiếng Việt không dấu, gạch chéo theo loại: `fix/`, `feature/`,
+  `release/`, `setup/`, `docs/`.
+* Không commit thẳng `main`; mọi thay đổi qua PR.
+* Branch release/private xóa sau merge (trừ branch dài hạn).
+
+### Issue
+
+* Mỗi issue một vấn đề. Dùng template `🐞 Báo lỗi` hoặc `✨ Đề xuất tính năng`.
+* Gán label (lỗi/tính năng/tài liệu...) và đưa vào Project board.
+* **Không đưa nội dung gõ thật của người dùng vào issue công khai.**
+
+### Project (Kanban)
+
+Project board (Kanban dọc) theo dõi trạng thái issue/PR qua cột:
+
+| Cột | Ý nghĩa |
+|---|---|
+| Tồn đọng | Issue mới, chưa bắt đầu |
+| Cần làm | Đã xếp ưu tiên, chờ branch |
+| Đang làm | Có branch/PR đang mở |
+| Đang review | PR chờ review/approve |
+| Xong | Đã merge, issue đóng |
+
 ## Phát hành
 
 Phát hành được tự động hóa qua `.github/workflows/release.yml`. Xem
