@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (c) 2026 Lê Hùng Quang Minh
+#
+# Cấu hình issue templates. Cho phép issue trống (cành note nhanh) và
+# liên kết tới tài liệu tham khảo.
+
+blank_issues_enabled: true
+contact_links:
+  - name: 📖 Tài liệu Cadence
+    url: https://github.com/LumeWorks/Cadence/tree/main/docs
+    about: RFC, bất biến, hướng dẫn phát hành, mô hình bảo mật, chính sách MSRV.
+  - name: 💬 Thảo luận
+    url: https://github.com/LumeWorks/Cadence/discussions
+    about: Câu hỏi, ý tưởng chưa thành issue, hỗ trợ sử dụng.
