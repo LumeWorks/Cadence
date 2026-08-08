@@ -4,13 +4,18 @@
 //! Lựa chọn giữa raw và biến đổi Telex.
 //!
 //! Quy tắc Phase 3 (mỗi đoạn chữ độc lập):
-//! 1. Shape transform + onset không hợp lệ → raw (`foo`→`foo`, `f` không là
-//!    onset Việt). Shape + onset hợp lệ → Telex (`ddm`→`đm`, `aaq`→`âq`).
-//! 2. Shape transform (onset hợp lệ) → Telex (ngay cả khi chưa phải âm tiết).
-//! 3. Escape hình chữ → Telex (`ddd`→`dd`); escape dấu thanh → Telex (`ass`→`as`).
-//! 4. Onset raw không hợp lệ (`cl` trong `class`) → raw.
-//! 5. Chỉ tone + âm tiết không hợp lệ → raw (`async`→`async`).
-//! 6. `them_nguyen_ban` chặn Telex ở tầng phân đoạn (đoạn `NguyenBan` luôn raw).
+//!
+//! 1.  Shape transform + onset không hợp lệ → raw (`foo`→`foo`, `f` không
+//!     là onset Việt). Shape + onset hợp lệ → Telex (`ddm`→`đm`, `aaq`→`âq`).
+//! 2.  Shape "ở xa" (modifier reach back qua ký tự khác) + âm tiết không hợp
+//!     lệ → raw. Chặn reshape tiếng Anh/kỹ thuật (vd `cadence`→`cadênc` raw)
+//!     mà giữ tiếng Việt (`khongo`→`không`). Shape liền base (adjacency) không
+//!     bị chặn để hỗ trợ gõ dở (`ddm`→`đm`).
+//! 3.  Shape transform (onset hợp lệ) → Telex (ngay cả khi chưa phải âm tiết).
+//! 4.  Escape hình chữ → Telex (`ddd`→`dd`); escape dấu thanh → Telex (`ass`→`as`).
+//! 5.  Onset raw không hợp lệ (`cl` trong `class`) → raw.
+//! 6.  Chỉ tone + âm tiết không hợp lệ → raw (`async`→`async`).
+//! 7.  `them_nguyen_ban` chặn Telex ở tầng phân đoạn (đoạn `NguyenBan` luôn raw).
 //!
 //! Teencode lặp (3+ chữ cái hình chữ doubled-base có chữ khác trước, như
 //! `brooo`) được bảo toàn raw TRƯỚC khi gọi `lua_chon` (xem `phan_doan`).
@@ -55,6 +60,7 @@ pub(crate) fn lua_chon(
     _raw: &str,
     co_escape: bool,
     co_escape_hinh_chu: bool,
+    co_hinh_xa: bool,
     co_nguyen_ban: bool,
     chinh_sach: ChinhSachLuaChon,
 ) -> KetQuaLuaChon {
@@ -94,23 +100,35 @@ pub(crate) fn lua_chon(
         return KetQuaLuaChon::NguyenBan;
     }
 
-    // Rule 2: shape transform (onset hợp lệ) → Telex.
+    // Rule 2: shape "ở xa" (modifier reach back qua ký tự khác) + âm tiết
+    // không hợp lệ → raw. Shape liền base (adjacency) cho gõ dở (`ddm`→`đm`)
+    // không bị chặn. `co_hinh_xa` chỉ set bởi Telex; VNI luôn false.
+    // `UuTienTiengViet` bỏ qua (giống Rule 6 cho tone).
+    if co_hinh_xa
+        && co_shape
+        && chinh_sach != ChinhSachLuaChon::UuTienTiengViet
+        && am_tiet::phan_tich_am_tiet(&output) == am_tiet::MucHopLe::KhongHopLe
+    {
+        return KetQuaLuaChon::NguyenBan;
+    }
+
+    // Rule 3: shape transform (onset hợp lệ) → Telex.
     if co_shape {
         return KetQuaLuaChon::Telex;
     }
 
-    // Rule 3: onset raw không hợp lệ (`cl` trong `class`) → raw.
+    // Rule 4: onset raw không hợp lệ (`cl` trong `class`) → raw.
     // Escape hình chữ (dd→đ rồi undo) vẫn giữ vì `dd` là cặp Telex hợp lệ.
     if !co_escape_hinh_chu && !am_tiet::raw_co_onset_hop_le(&output) {
         return KetQuaLuaChon::NguyenBan;
     }
 
-    // Rule 4: escape luôn giữ (ý định người dùng thoát Telex).
+    // Rule 5: escape luôn giữ (ý định người dùng thoát Telex).
     if co_escape {
         return KetQuaLuaChon::Telex;
     }
 
-    // Rule 5: chỉ có tone transform → parse âm tiết đầy đủ.
+    // Rule 6: chỉ có tone transform → parse âm tiết đầy đủ.
     // Bỏ qua khi có `them_nguyen_ban` vì các đoạn độc lập.
     // `UuTienTiengViet` cho phép Telex ngay cả khi âm tiết chưa hoàn chỉnh.
     if co_tone

@@ -26,6 +26,31 @@ Bảng biến đổi hình chữ (modifier → `DauChu`):
 
 Trường hợp đặc biệt: `uo` + `w` → `ươ` (w biến đổi cả `u`→`ư` lẫn `o`→`ơ`).
 
+### Thứ tự linh hoạt (shape reach back)
+
+Phím hình chữ (`w`/`a`/`e`/`o`/`d`) reach back tới **base trần** (chưa có
+dấu hình chữ) gần nhất trong đoạn, không nhất thiết ngay sau base. Người gõ
+thường chèn dấu ở khắp nơi vì tiện tay; engine theo chứ không ép thứ tự. Parity
+với VNI (RFC 0021: `a16`/`a61`, `toi6`→tôi).
+
+| Gõ      | Kết quả | Diễn giải                                  |
+|---------|---------|--------------------------------------------|
+| `oiw`   | `ơi`    | `w` cách base `o` qua bán âm `i`            |
+| `voiws` | `với`   | `w` cách `o` qua `i`, `s` sắc               |
+| `uoiw`  | `ươi`   | `w` horn cả `u` và `o` (ươ) dù `i` xen giữa |
+| `khongo`| `không` | `o` cuối restroke `o` đầu qua phụ âm `ng`  |
+| `uongw` | `ương`  | `w` horn cặp `uo` qua phụ âm `ng`          |
+
+Chỉ reach back tới base **trần** (`dau_chu == Khong`), nên `aaw`→`âw` (â đã có
+Mu, `w` không restroke thành ă).
+
+### Chặn reshape tiếng Anh (shape ở xa + âm tiết không hợp lệ)
+
+Shape reach back qua ký tự khác ("ở xa") có thể biến đổi tiếng Anh thành rác
+(vd `cadence`→`cadênc`, `release`→`rêláe`). `lua_chon` Rule 2 chặn: shape ở xa
++ âm tiết không hợp lệ → raw. Shape liền base (adjacency) cho gõ dở (`ddm`→`đm`)
+không bị chặn. Tone-only (`text`→`tẽt`, `use`→`úe`) không bị ảnh hưởng.
+
 ### Dấu thanh (tone marks)
 
 Bảng dấu thanh (key → `DauThanh`):
@@ -70,6 +95,10 @@ Escape luôn giữ kết quả Telex (ý định người dùng), không fallbac
 
 ## Phương án bị loại
 
+* **Adjacency cứng (shape chỉ khi modifier ngay sau base)**: bị loại - lệch
+  VNI (RFC 0021 cho phép `toi6`→tôi, `di9`→đi), và người gõ không bao giờ tuân
+  thủ thứ tự chính xác (`voiws` thay vì `vowsi`). Forward-peek `i+1` ép raw cho
+  mọi input chèn dấu giữa.
 * **Đặt dấu trên nguyên âm cuối bất kể**: bị loại - sai chính tả (`uơì` thay vì
   `ười`).
 * **Bảng vần đầy đủ**: bị loại cho Phase 2 - phức tạp, dành cho Phase 3.
@@ -80,6 +109,10 @@ Escape luôn giữ kết quả Telex (ý định người dùng), không fallbac
 * Mỗi raw position thuộc nhiều nhất một `DonViRender` (không trùng lặp).
 * Escape hoàn tác đúng một biến đổi, không ảnh hưởng đơn vị khác.
 * `z` (xóa dấu) chỉ consume khi có dấu để xóa; không có → literal.
+* Shape modifier reach back tới base trần trong đoạn (`segment_start`), không
+  xuyên ranh giới `them_nguyen_ban`.
+* Shape ở xa (reach back qua ký tự khác) + âm tiết không hợp lệ → raw (chặn
+  reshape tiếng Anh); shape liền base không bị chặn (hỗ trợ gõ dở).
 
 ## Tác động tới Phase sau
 
@@ -88,9 +121,15 @@ Escape luôn giữ kết quả Telex (ý định người dùng), không fallbac
 
 ## Ghi chú triển khai
 
-* `tim_nguyen_am_chinh` trong `telex.rs` triển khai quy tắc nguyên âm chính
-  với 3 trường hợp: bán âm cuối (`i`/`u`/`o`), on-glide (`o`+`a`/`e`), và
+* `tim_base_hinh_chu` trong `telex.rs` tìm ngược base trần gần nhất tương thích
+  với modifier (`w`/`a`/`e`/`o`/`d`), mutate `dau_chu` tại chỗ (không tạo đơn
+  vị mới). ươ đặc biệt horn cả `u` và `o` khi cặp liền nhau.
+* `tim_nguyen_am_chinh` trong `bo_dat_dau.rs` triển khai quy tắc nguyên âm
+  chính với 3 trường hợp: bán âm cuối (`i`/`u`/`o`), on-glide (`o`+`a`/`e`), và
   mặc định (nguyên âm cuối).
 * Bán âm cuối mở rộng `o` (không chỉ `i`/`u`) để xử lý `ao`, `eo`, `ưo`.
-* `segment_start` theo dõi ranh giới `them_nguyen_ban` để chặn tone xuyên.
-* 299 tests xác minh hành vi (xem `tests/telex_*.rs`).
+* `segment_start` theo dõi ranh giới `them_nguyen_ban` để chặn tone/shape xuyên.
+* `lua_chon` Rule 2: shape ở xa + âm tiết không hợp lệ → raw (chặn reshape
+  tiếng Anh); `co_hinh_xa` từ engine đánh dấu shape reach back qua ký tự khác.
+* 757 tests xác minh hành vi (xem `tests/telex_*.rs`,
+  `tests/telex_thu_tu_linh_hoat.rs`).

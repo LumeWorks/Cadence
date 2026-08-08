@@ -194,6 +194,7 @@ pub(crate) fn xu_ly_doan_chu(cac_thao_tac: &[ThaoTacNhap], quy_tac: QuyTacDatDau
         don_vi,
         co_escape,
         co_escape_hinh_chu,
+        co_hinh_xa: false,
     }
 }
 

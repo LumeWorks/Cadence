@@ -202,6 +202,7 @@ fn render_chu(
         "",
         ket_qua_doan.co_escape,
         ket_qua_doan.co_escape_hinh_chu,
+        ket_qua_doan.co_hinh_xa,
         false,
         chinh_sach,
     );

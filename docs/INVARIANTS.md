@@ -173,6 +173,9 @@ Không global mutable cache.
 - `them_nguyen_ban` luôn chặn Telex.
 - 2+ dấu thanh → raw.
 - shape + onset không hợp lệ → raw.
+- shape ở xa (reach back qua ký tự khác) + âm tiết không hợp lệ → raw (chặn
+  reshape tiếng Anh `cadence`/`release`); shape liền base cho gõ dở không bị
+  chặn (`ddm`→`đm`).
 
 | Test | Bất biến |
 |---|---|
@@ -181,6 +184,11 @@ Không global mutable cache.
 | `tests/chinh_sach_lua_chon.rs::tat_ca_chinh_sach_shape_onset_sai_raw` | shape + onset sai → raw |
 | `tests/chinh_sach_lua_chon.rs::uu_tien_tieng_viet_tone_telex` | UuTienTiengViet thông Rule 5 |
 | `tests/telex_lua_chon.rs::class_ve_raw` | `class` raw |
+| `tests/telex_thu_tu_linh_hoat.rs::cadence_khong_reshape` | shape ở xa + không hợp lệ → raw |
+| `tests/telex_thu_tu_linh_hoat.rs::release_khong_reshape` | shape ở xa + không hợp lệ → raw |
+| `tests/telex_thu_tu_linh_hoat.rs::khongo_thanh_khong` | shape reach back qua phụ âm → tiếng Việt |
+| `tests/telex_thu_tu_linh_hoat.rs::voiws_thanh_voi` | shape reach back qua bán âm → tiếng Việt |
+| `tests/telex_thu_tu_linh_hoat.rs::ddm_thanh_dm` | shape liền base cho gõ dở không bị chặn |
 
 ## Bất biến sẽ bổ sung Phase 4
 

@@ -64,4 +64,10 @@ pub(crate) struct KetQuaDoanChu {
     pub(crate) co_escape: bool,
     /// Escape là escape hình chữ/modifier (lặp phím modifier đang hoạt động).
     pub(crate) co_escape_hinh_chu: bool,
+    /// Có shape modifier áp dụng "ở xa" (reach back qua ký tự khác, không
+    /// liền base). Dùng bởi `lua_chon` để chặn reshape tiếng Anh/kỹ thuật
+    /// (vd `cadence`→`cadênc`) mà giữ tiếng Việt hợp lệ (vd `khongo`→`không`).
+    /// Chỉ Telex set `true`; VNI luôn `false` (digit modifier không đụng từ
+    /// tiếng Anh).
+    pub(crate) co_hinh_xa: bool,
 }
